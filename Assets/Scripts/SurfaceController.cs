@@ -3,33 +3,50 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace PlayerControl
+namespace CharControl
 {  
 
     public class SurfaceController
     {
-        public float rayLength = 1.5f;
+        Collider objectCollider;
+        
 	    public GameObject surfaceObject;
 	    public Vector3 contactPoint;
 	    public Vector3 contactPointNormal;
+        public float contactSeparation;
 	    public Vector3 contactPointVelocity;
 	    public Vector3 angularVelocity;
 
-        public bool isGrounded() 
+        public SurfaceController(Collider newCollider)
         {
-            return surfaceObject == null ? false : true;
+            objectCollider = newCollider;
         }
 
-        public void Check(Vector3 position)
+        public bool isGrounded() 
         {
-            Debug.DrawRay(position, -Vector3.up * rayLength, Color.black, Time.deltaTime);
+            return ( Mathf.Abs(contactSeparation) < Mathf.Abs(objectCollider.bounds.size.y*0.1f) ) ? true : false;
+        }
 
+        public void Check()
+        {
             RaycastHit surfaceRay;
-            if (Physics.Raycast(position, -Vector3.up, out surfaceRay, rayLength)) {
+
+            
+            Debug.DrawRay(  objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0),
+                            -Vector3.up * objectCollider.bounds.size.y, 
+                            Color.black, 
+                            Time.deltaTime);
+
+
+            if (Physics.Raycast(    objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0),
+                                    -Vector3.up * objectCollider.bounds.size.y,
+                                    out surfaceRay,
+                                    objectCollider.bounds.size.y) ) {
             	Set(surfaceRay);
             } else {
             	Reset();
             }
+
         }
 
         public void Set(RaycastHit rayHit)
@@ -38,8 +55,16 @@ namespace PlayerControl
             contactPoint = rayHit.point;
             contactPointNormal = rayHit.normal;
 
+            contactSeparation = (objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0) - contactPoint).y;
+
             contactPointVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;
+
+
+            Debug.DrawRay(  contactPoint,
+                            new Vector3(0, contactSeparation, 0),
+                            Color.green, 
+                            Time.deltaTime);
         }
 
         public void Reset()
@@ -47,6 +72,7 @@ namespace PlayerControl
             surfaceObject = null;
             contactPoint = Vector3.zero;
             contactPointNormal = Vector3.zero;
+            contactSeparation = Mathf.Infinity;
             contactPointVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;
         }
