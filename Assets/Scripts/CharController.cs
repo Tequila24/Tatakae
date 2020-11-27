@@ -7,42 +7,40 @@ namespace CharControl
 {   
     enum CharState 
     {
-        None = 0,
         Freefall,
         Slidefall,
         Walking,
         Grappling,
-        Flying
+        Flying,
+        None = 0
     }
 
     public class CharController : MonoBehaviour
     {
-        SurfaceController _surface;
-        Rigidbody _characterBody;
-        Collider _characterCollider;
+        SurfaceController surface;
+        Rigidbody characterBody;
+        Collider characterCollider;
 
-        CharState _currentState;
+        CharState currentState;
 
-        Vector3 _inertia;
-        Vector3 _currentVelocity;
+        Vector3 currentVelocity;
 
 
         void Awake()
         {
-            _characterBody = this.gameObject.GetComponent<Rigidbody>();
-            _characterCollider = this.gameObject.GetComponent<Collider>();
+            characterBody = this.gameObject.GetComponent<Rigidbody>();
+            characterCollider = this.gameObject.GetComponent<Collider>();
 
-            if (_characterBody == null)
+            if (characterBody == null)
             {
-                _characterBody = this.gameObject.AddComponent<Rigidbody>();
+                characterBody = this.gameObject.AddComponent<Rigidbody>();
             }
-            _characterBody.isKinematic = true;
+            characterBody.isKinematic = true;
 
-            _surface = new SurfaceController(_characterCollider);
+            surface = new SurfaceController(characterCollider);
 
-            _currentState = CharState.None;
-            _inertia = Vector3.zero;
-
+            currentState = CharState.None;
+            currentVelocity = Vector3.zero;
         }
 
 
@@ -56,37 +54,31 @@ namespace CharControl
 
         void UpdateState()
         {
-            CharState oldState = _currentState;
+            CharState oldState = currentState;
 
-            _surface.Check();
-            if (_surface.isGrounded())  {
-                _currentState = CharState.Walking;
+            surface.Check();
+            if (surface.isGrounded())  {
+                currentState = CharState.Walking;
             } else {
                 // CHECK IF FLYING
                 // ...
-                _currentState = CharState.Freefall;
+                currentState = CharState.Freefall;
             }
 
             // CHECK IF GRAPPLING
             // ...
 
 
-            // CHANGE CHARACTER PROPERTIES
-            if (oldState != _currentState)
+
+            // TRANSFORM VELOCITY
+            if (oldState != currentState)
             {
-                switch (_currentState)
+                Debug.Log("State:" + oldState + "=> State:" + currentState);
+                switch (currentState)
                 {
                     case CharState.Walking: 
                     {
-                        _characterBody.isKinematic = true;
-                        _inertia = Quaternion.Inverse(_surface.rotationToNormal) * Vector3.ProjectOnPlane( _currentVelocity, _surface.normal );
-                        _currentVelocity = Vector3.zero;
-                        Debug.DrawRay(_surface.point, _surface.rotationToNormal * _inertia * 10, Color.blue, 10);
-                        break;
-                    }
-                    case CharState.Freefall:
-                    {
-                        _characterBody.isKinematic = false;
+                        currentVelocity = Vector3.ProjectOnPlane( currentVelocity, surface.contactPointNormal );
                         break;
                     }
                     default:
@@ -97,7 +89,7 @@ namespace CharControl
 
         void UpdatePosition()
         {
-            switch (_currentState)
+            switch (currentState)
             {
                 case CharState.Walking: 
                     Walk();
@@ -115,30 +107,32 @@ namespace CharControl
         void Walk()
         {
             // READ INPUT
-            Vector3 step = new Vector3( (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
-                                        0,
-                                        (Input.GetKey(KeyCode.W) ? 1 : 0)  - (Input.GetKey(KeyCode.S) ? 1 : 0)  );
+            Vector3 inputDirection = new Vector3(   (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
+                                                    0,
+                                                    (Input.GetKey(KeyCode.W) ? 1 : 0)  - (Input.GetKey(KeyCode.S) ? 1 : 0)  );
             Vector2 mouseDelta = new Vector2(   Input.GetAxis("Horizontal"),
                                                 Input.GetAxis("Vertical") );            
 
 
             // VECTORS
-            Vector3 heightAdjustment = new Vector3(0, _surface.contactSeparation - 0.1f, 0) * 0.1f;
+            Quaternion rotationToNormal = Quaternion.FromToRotation(Vector3.up, surface.contactPointNormal);
 
-            _currentVelocity = Vector3.Lerp(_currentVelocity, step * 0.1f, 0.1f);
+            Vector3 step = rotationToNormal * inputDirection * 0.1f;
 
-            _inertia = Vector3.Lerp(_inertia, Vector3.zero, 0.1f);
+            currentVelocity = Vector3.Lerp(currentVelocity, step, 0.1f);
+
+            Vector3 heightAdjustment = new Vector3(0, surface.contactSeparation - 0.1f, 0) * 0.1f;
 
             // APPLY
-            _characterBody.MovePosition(    transform.position
-                                            + (_surface.rotationToNormal * _currentVelocity)
-                                            + (_surface.rotationToNormal * _inertia)
-                                            - heightAdjustment  );
+
+            characterBody.MovePosition(transform.position + (rotationToNormal * currentVelocity) - heightAdjustment);
         }
 
         void Fall()
         {
-            _currentVelocity = _characterBody.velocity * Time.deltaTime;
+            currentVelocity = Vector3.Lerp(currentVelocity, Physics.gravity * Time.deltaTime, 0.3f);
+
+            characterBody.MovePosition(transform.position + currentVelocity);
         }
     }
 }
