@@ -8,7 +8,7 @@ namespace CharControl
 
     public class SurfaceController
     {
-        Collider objectCollider;
+        private Collider objectCollider;
         
 	    public GameObject surfaceObject;
 	    public Vector3 contactPoint;
@@ -16,15 +16,13 @@ namespace CharControl
         public float contactSeparation;
 	    public Vector3 contactPointVelocity;
 	    public Vector3 angularVelocity;
+        public Vector3 downhillVector;
+        public Quaternion rotationToNormal;
+        public Quaternion rotationFromNormal;
 
         public SurfaceController(Collider newCollider)
         {
             objectCollider = newCollider;
-        }
-
-        public bool isGrounded() 
-        {
-            return ( Mathf.Abs(contactSeparation) < Mathf.Abs(objectCollider.bounds.size.y*0.1f) ) ? true : false;
         }
 
         public void Check()
@@ -32,13 +30,13 @@ namespace CharControl
             RaycastHit surfaceRay;
 
             
-            Debug.DrawRay(  objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0),
+            Debug.DrawRay(  objectCollider.bounds.center,
                             -Vector3.up * objectCollider.bounds.size.y, 
                             Color.black, 
                             Time.deltaTime);
 
 
-            if (Physics.Raycast(    objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0),
+            if (Physics.Raycast(    objectCollider.bounds.center,
                                     -Vector3.up * objectCollider.bounds.size.y,
                                     out surfaceRay,
                                     objectCollider.bounds.size.y) ) {
@@ -59,7 +57,10 @@ namespace CharControl
 
             contactPointVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;
+            downhillVector = Vector3.Cross(contactPointNormal, Vector3.Cross(contactPointNormal, Vector3.up));
 
+            rotationToNormal = Quaternion.FromToRotation(Vector3.up, contactPointNormal);
+            rotationFromNormal = Quaternion.Inverse(rotationToNormal);
 
             Debug.DrawRay(  contactPoint,
                             new Vector3(0, contactSeparation, 0),
@@ -75,6 +76,10 @@ namespace CharControl
             contactSeparation = Mathf.Infinity;
             contactPointVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;
+            downhillVector = Vector3.zero;
+
+            rotationToNormal = Quaternion.identity;
+            rotationFromNormal = Quaternion.identity;
         }
     }
 }

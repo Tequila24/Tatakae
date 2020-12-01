@@ -7,80 +7,71 @@ namespace CharControl
 {   
     enum CharState 
     {
-        Freefall,
+        None = 0,
+        Freefalling,
         Slidefall,
         Walking,
         Grappling,
-        Flying,
-        None = 0
+        Flying
     }
 
     public class CharController : MonoBehaviour
     {
-        SurfaceController surface;
-        Rigidbody characterBody;
-        Collider characterCollider;
+        SurfaceController _surface;
+        Rigidbody _characterBody;
+        Collider _characterCollider;
 
-        CharState currentState;
+        [SerializeField]
+        CharState _currentState;
 
-        Vector3 currentVelocity;
-
+        Vector2 lookAngles;
 
         void Awake()
         {
-            characterBody = this.gameObject.GetComponent<Rigidbody>();
-            characterCollider = this.gameObject.GetComponent<Collider>();
+            _characterBody = gameObject.GetComponent<Rigidbody>();
+            _characterCollider = gameObject.GetComponent<Collider>();
+            _surface = new SurfaceController(_characterCollider);
 
-            if (characterBody == null)
-            {
-                characterBody = this.gameObject.AddComponent<Rigidbody>();
-            }
-            characterBody.isKinematic = true;
-
-            surface = new SurfaceController(characterCollider);
-
-            currentState = CharState.None;
-            currentVelocity = Vector3.zero;
+            _currentState = CharState.None;
         }
 
 
         void FixedUpdate()
         {
             UpdateState();
-
             UpdatePosition();
         }
 
 
         void UpdateState()
         {
-            CharState oldState = currentState;
+            CharState oldState = _currentState;
 
-            surface.Check();
-            if (surface.isGrounded())  {
-                currentState = CharState.Walking;
+            // GET SURFACE STATE
+            _surface.Check();
+            if (_surface.contactSeparation < 0.20f) {
+                _currentState = CharState.Walking;
             } else {
-                // CHECK IF FLYING
-                // ...
-                currentState = CharState.Freefall;
+                _currentState = CharState.Freefalling;
             }
 
-            // CHECK IF GRAPPLING
-            // ...
-
-
-
-            // TRANSFORM VELOCITY
-            if (oldState != currentState)
+            // SWITCH STATE ACCORDINGLY
+            if (oldState != _currentState)
             {
-                Debug.Log("State:" + oldState + "=> State:" + currentState);
-                switch (currentState)
+                Debug.Log("State:" + oldState + "=> State:" + _currentState);
+
+                switch (_currentState)
                 {
-                    case CharState.Walking: 
-                    {
-                        currentVelocity = Vector3.ProjectOnPlane( currentVelocity, surface.contactPointNormal );
+                    case CharState.Freefalling: {
+                        _characterBody.isKinematic = false;
                         break;
                     }
+
+                    case CharState.Walking: {
+                        _characterBody.isKinematic = true;
+                        break;
+                    }
+
                     default:
                         break;
                 }
@@ -89,14 +80,14 @@ namespace CharControl
 
         void UpdatePosition()
         {
-            switch (currentState)
+            switch (_currentState)
             {
-                case CharState.Walking: 
-                    Walk();
+                case CharState.Freefalling:
+                    Fall();
                     break;
 
-                case CharState.Freefall:
-                    Fall();
+                case CharState.Walking:
+                    Walk();
                     break;
 
                 default:
@@ -104,35 +95,35 @@ namespace CharControl
             }
         }
 
+        void Fall()
+        {
+
+        }
+
         void Walk()
         {
-            // READ INPUT
+            // GET INPUT
             Vector3 inputDirection = new Vector3(   (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
                                                     0,
                                                     (Input.GetKey(KeyCode.W) ? 1 : 0)  - (Input.GetKey(KeyCode.S) ? 1 : 0)  );
-            Vector2 mouseDelta = new Vector2(   Input.GetAxis("Horizontal"),
-                                                Input.GetAxis("Vertical") );            
+            lookAngles += new Vector2(  -Input.GetAxis("Mouse Y"),
+                                        Input.GetAxis("Mouse X")    ) * 3.0f;
+            Debug.Log(lookAngles);
+            Quaternion lookRotation = Quaternion.Euler(lookAngles.x, lookAngles.y, 0);
+            
+            Debug.DrawRay(  transform.position,
+                            lookRotation * Vector3.forward * 3,
+                            Color.black,
+                            Time.deltaTime  );
 
+            Vector3 heightAdjustment = new Vector3(0, _surface.contactSeparation - 0.1f, 0) * 0.5f * -1.0f;
 
-            // VECTORS
-            Quaternion rotationToNormal = Quaternion.FromToRotation(Vector3.up, surface.contactPointNormal);
+            // 0.1f step speed
+            Vector3 step = _surface.rotationToNormal * inputDirection * 0.1f;
 
-            Vector3 step = rotationToNormal * inputDirection * 0.1f;
-
-            currentVelocity = Vector3.Lerp(currentVelocity, step, 0.1f);
-
-            Vector3 heightAdjustment = new Vector3(0, surface.contactSeparation - 0.1f, 0) * 0.1f;
-
-            // APPLY
-
-            characterBody.MovePosition(transform.position + (rotationToNormal * currentVelocity) - heightAdjustment);
-        }
-
-        void Fall()
-        {
-            currentVelocity = Vector3.Lerp(currentVelocity, Physics.gravity * Time.deltaTime, 0.3f);
-
-            characterBody.MovePosition(transform.position + currentVelocity);
+            // APPLY VELOCITIES
+            transform.position +=   heightAdjustment
+                                    + step;
         }
     }
 }
