@@ -24,7 +24,13 @@ namespace CharControl
         [SerializeField]
         CharState _currentState;
 
-        Vector2 lookAngles;
+        Vector3 stepInput;
+        Vector2 deltaMouse;
+        Vector2 charLookAngles;
+
+        Quaternion charYaw;
+        Quaternion charPitch;
+
 
         void Awake()
         {
@@ -42,6 +48,21 @@ namespace CharControl
             UpdatePosition();
         }
 
+        void OnGUI()
+        {
+            // KEYBOARD STEP INPUT
+            stepInput = new Vector3(   (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
+                                            0,
+                                            (Input.GetKey(KeyCode.W) ? 1 : 0)  - (Input.GetKey(KeyCode.S) ? 1 : 0)  );
+
+            // MOUSE ROTATION DELTA
+            deltaMouse = new Vector2(  -Input.GetAxis("Mouse Y"),
+                                        Input.GetAxis("Mouse X")    ) * 3.0f;
+            charLookAngles += deltaMouse;
+            
+            charYaw = Quaternion.Euler(0, charLookAngles.y, 0);
+            charPitch = Quaternion.Euler(charLookAngles.x, 0, 0);
+        }
 
         void UpdateState()
         {
@@ -102,28 +123,24 @@ namespace CharControl
 
         void Walk()
         {
-            // GET INPUT
-            Vector3 inputDirection = new Vector3(   (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
-                                                    0,
-                                                    (Input.GetKey(KeyCode.W) ? 1 : 0)  - (Input.GetKey(KeyCode.S) ? 1 : 0)  );
-            lookAngles += new Vector2(  -Input.GetAxis("Mouse Y"),
-                                        Input.GetAxis("Mouse X")    ) * 3.0f;
-            Debug.Log(lookAngles);
-            Quaternion lookRotation = Quaternion.Euler(lookAngles.x, lookAngles.y, 0);
-            
+            Quaternion lookRotation = Quaternion.Euler(charLookAngles.x, charLookAngles.y, 0);
+
             Debug.DrawRay(  transform.position,
                             lookRotation * Vector3.forward * 3,
                             Color.black,
-                            Time.deltaTime  );
-
+                            Time.deltaTime  );  
+          
             Vector3 heightAdjustment = new Vector3(0, _surface.contactSeparation - 0.1f, 0) * 0.5f * -1.0f;
 
             // 0.1f step speed
-            Vector3 step = _surface.rotationToNormal * inputDirection * 0.1f;
+            Vector3 step = _surface.rotationToNormal * charYaw * stepInput * 0.1f;
 
             // APPLY VELOCITIES
             transform.position +=   heightAdjustment
                                     + step;
+                                    
+            // APPLY ROTATION    
+            transform.rotation = charYaw;
         }
     }
 }
