@@ -35,7 +35,7 @@ namespace CharControl
 
             // GET SURFACE STATE
             _surface.Check();
-            if (_surface.contactSeparation < 0.20f) {
+            if (_surface.contactSeparation < 0.5f) {
                 _currentState = CharState.Walking;
             } else {
                 _currentState = CharState.Freefalling;
@@ -51,7 +51,7 @@ namespace CharControl
         void SwitchState()
         {
 
-            Debug.Log("State:" + _previousState + "=> State:" + _currentState);
+            Debug.Log("State:" + _previousState + " => State:" + _currentState);
             switch (_currentState)
             {
                 case CharState.Freefalling: {

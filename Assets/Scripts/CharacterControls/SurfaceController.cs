@@ -37,7 +37,7 @@ namespace CharControl
 
 
             if (Physics.Raycast(    objectCollider.bounds.center,
-                                    -Vector3.up * objectCollider.bounds.size.y,
+                                    -Vector3.up * objectCollider.bounds.size.y*2,
                                     out surfaceRay,
                                     objectCollider.bounds.size.y) ) {
             	Set(surfaceRay);
