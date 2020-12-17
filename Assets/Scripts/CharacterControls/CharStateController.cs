@@ -23,10 +23,11 @@ namespace CharControl
         private CharState _previousState;
 
 
-        public CharStateController( SurfaceController newSurfaceControl, Rigidbody charBody)
+        public CharStateController( SurfaceController newSurfaceControl, Rigidbody newCharBody)
         {
             _surface = newSurfaceControl;
 
+            _charBody = newCharBody;
         }
 
         public void UpdateState()

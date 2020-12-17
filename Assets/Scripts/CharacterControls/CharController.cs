@@ -14,10 +14,14 @@ public class CharController : MonoBehaviour
     private Vector2 deltaMouse;
     public Vector2 lookAngles;
 
+
     private Quaternion charYaw;
     private Quaternion charPitch;
 
-
+    void OnValidate()
+    {
+        Start();
+    }
     void Start()
     {
         _charBody = gameObject.GetComponent<Rigidbody>();
@@ -33,6 +37,7 @@ public class CharController : MonoBehaviour
         stepInput = new Vector3(   (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
                                     0,
                                     (Input.GetKey(KeyCode.W) ? 1 : 0)  - (Input.GetKey(KeyCode.S) ? 1 : 0)  );
+        stepInput = Vector3.ClampMagnitude(stepInput, 1);
 
 
         // MOUSE ROTATION DELTA
@@ -86,7 +91,7 @@ public class CharController : MonoBehaviour
         _charBody.velocity = Vector3.zero;
 
         // APPLY ROTATION
-        Quaternion rotationAdjust = Quaternion.Lerp(transform.rotation, charYaw * Quaternion.identity, 0.5f);
+        Quaternion rotationAdjust = Quaternion.Lerp(transform.rotation, charYaw * Quaternion.identity, 0.2f);
         transform.rotation = rotationAdjust;
     }
 }

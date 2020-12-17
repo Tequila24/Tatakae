@@ -30,13 +30,13 @@ namespace CharControl
             RaycastHit surfaceRay;
 
             
-            Debug.DrawRay(  objectCollider.bounds.center,
+            Debug.DrawRay(  objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0),
                             -Vector3.up * objectCollider.bounds.size.y, 
                             Color.black, 
                             Time.deltaTime);
 
 
-            if (Physics.Raycast(    objectCollider.bounds.center,
+            if (Physics.Raycast(    objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0),
                                     -Vector3.up * objectCollider.bounds.size.y*2,
                                     out surfaceRay,
                                     objectCollider.bounds.size.y) ) {
