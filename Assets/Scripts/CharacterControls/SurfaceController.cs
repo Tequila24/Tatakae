@@ -30,13 +30,13 @@ namespace CharControl
             RaycastHit surfaceRay;
 
             
-            Debug.DrawRay(  objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0),
+            Debug.DrawRay(  objectCollider.bounds.center,
                             -Vector3.up * objectCollider.bounds.size.y, 
                             Color.black, 
                             Time.deltaTime);
 
 
-            if (Physics.Raycast(    objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0),
+            if (Physics.Raycast(    objectCollider.bounds.center,
                                     -Vector3.up * objectCollider.bounds.size.y*2,
                                     out surfaceRay,
                                     objectCollider.bounds.size.y) ) {
@@ -53,7 +53,7 @@ namespace CharControl
             contactPoint = rayHit.point;
             contactPointNormal = rayHit.normal;
 
-            contactSeparation = (objectCollider.bounds.center - new Vector3(0, objectCollider.bounds.extents.y, 0) - contactPoint).y;
+            contactSeparation = (objectCollider.bounds.center - contactPoint).y;
 
             contactPointVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;
