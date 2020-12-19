@@ -15,7 +15,7 @@ public class CameraController : MonoBehaviour
     void FixedUpdate()
     {
         Vector3 offset = new Vector3( 1.5f, 1.5f, -5.0f );
-        Quaternion rotation = Quaternion.Euler(_player.lookAngles.x, _player.lookAngles.y, 0);
+        Quaternion rotation = _player.lookRotation;
 
         this.transform.position = _player.transform.position + rotation * offset;
         this.transform.rotation = rotation;

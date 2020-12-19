@@ -31,7 +31,7 @@ namespace CharControl
 
             
             Debug.DrawRay(  objectCollider.bounds.center,
-                            -Vector3.up * objectCollider.bounds.size.y, 
+                            -Vector3.up * objectCollider.bounds.size.y*2, 
                             Color.black, 
                             Time.deltaTime);
 
@@ -54,6 +54,7 @@ namespace CharControl
             contactPointNormal = rayHit.normal;
 
             contactSeparation = (objectCollider.bounds.center - contactPoint).y;
+            Debug.Log(contactSeparation);
 
             contactPointVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;

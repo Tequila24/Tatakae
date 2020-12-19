@@ -11,13 +11,12 @@ public class CharController : MonoBehaviour
     private SurfaceController _surface;
     private Rigidbody _charBody;
     private Collider _charCollider;
-    private Vector3 step;
-    private Vector2 stepDeltaMouse;
-    public Vector2 lookAngles;
 
+    public Quaternion lookRotation {
+        get { return _moveControl.GetLookRotation(); }
+        set {}
+    }
 
-    private Quaternion charYaw;
-    private Quaternion charPitch;
 
     void OnValidate()
     {
@@ -35,7 +34,7 @@ public class CharController : MonoBehaviour
     void OnGUI()
     {
         // KEYBOARD STEP INPUT
-        stepInput = new Vector3(   (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
+        /*stepInput = new Vector3(   (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
                                     0,
                                     (Input.GetKey(KeyCode.W) ? 1 : 0)  - (Input.GetKey(KeyCode.S) ? 1 : 0)  );
         stepInput = Vector3.ClampMagnitude(stepInput, 1);
@@ -48,9 +47,13 @@ public class CharController : MonoBehaviour
         
         // CALCULATE ROTATIONS
         charYaw = Quaternion.Euler(0, lookAngles.y, 0);
-        charPitch = Quaternion.Euler(lookAngles.x, 0, 0);
+        charPitch = Quaternion.Euler(lookAngles.x, 0, 0);*/
     }
 
+    void Update()
+    {
+        _moveControl.UpdateInputs();
+    }
 
     void FixedUpdate()
     {
