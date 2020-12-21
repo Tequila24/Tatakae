@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using CharControl;
 
 
 public class CameraController : MonoBehaviour
@@ -15,7 +16,7 @@ public class CameraController : MonoBehaviour
     void FixedUpdate()
     {
         Vector3 offset = new Vector3( 1.5f, 1.5f, -5.0f );
-        Quaternion rotation = _player.lookRotation;
+        Quaternion rotation = _player.GetLookRotation();
 
         this.transform.position = _player.transform.position + rotation * offset;
         this.transform.rotation = rotation;

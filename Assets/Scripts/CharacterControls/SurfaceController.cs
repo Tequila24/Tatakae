@@ -54,7 +54,7 @@ namespace CharControl
             contactPointNormal = rayHit.normal;
 
             contactSeparation = (objectCollider.bounds.center - contactPoint).y;
-            Debug.Log(contactSeparation);
+            //Debug.Log(contactSeparation);
 
             contactPointVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;
