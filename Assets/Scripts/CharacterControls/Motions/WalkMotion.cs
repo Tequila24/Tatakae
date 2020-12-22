@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CharControl
 {
-    public class WalkMotion : IMotion
+    public class WalkMotion : Motion
     {
         InputState _inputs;
         Vector3 _velocity;
@@ -15,19 +15,19 @@ namespace CharControl
         SurfaceController _surface;
 
 
-        WalkMotion(Rigidbody charBody, Collider charCollider, SurfaceController surface)
+        public WalkMotion(Rigidbody charBody, Collider charCollider, SurfaceController surface)
         {
             _charBody = charBody;
             _charCollider = charCollider;
             _surface = surface;
         }
 
-        public void UpdateInputs(InputState newInputs)
+        public override void UpdateInputs(InputState newInputs)
         {
             _inputs = newInputs;
         }
 
-        public void BeginMotion(Vector3 oldVelocity)
+        public override void BeginMotion(Vector3 oldVelocity)
         {
             _velocity = oldVelocity;
 
@@ -35,7 +35,7 @@ namespace CharControl
             _charBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         }
 
-        public void ProcessMotion()
+        public override void ProcessMotion()
         {
             Vector3 heightAdjust = new Vector3(0, _surface.contactSeparation - (_charCollider.bounds.extents.y + 0.1f), 0) * 0.4f;
             Vector3 step =  _surface.rotationToNormal *                                                                             //rotation to surface
@@ -54,7 +54,7 @@ namespace CharControl
             _charBody.transform.rotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);
         }
 
-        public Vector3 EndMotion() 
+        public override Vector3 EndMotion() 
         {
             return _velocity;
         }

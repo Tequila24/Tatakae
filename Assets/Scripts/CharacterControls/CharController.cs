@@ -41,8 +41,12 @@ namespace CharControl
         private Rigidbody _charBody;
         private Collider _charCollider;
     
-        InputState _inputs;
+        private InputState _inputs;
 
+        private CharState _currentState;
+        private CharState _previousState;
+
+        private Dictionary<CharState, Motion> _charMotions;
 
     
         void OnValidate()
@@ -54,6 +58,10 @@ namespace CharControl
             _charBody = gameObject.GetComponent<Rigidbody>();
             _charCollider = gameObject.GetComponent<Collider>();
             _surface = new SurfaceController(_charCollider);
+
+            _charMotions = new Dictionary<CharState, Motion>();
+            _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody, _charCollider, _surface) );
+            _charMotions.Add(CharState.Walking, new WalkMotion(_charBody, _charCollider, _surface) );
         }
 
 
@@ -74,10 +82,47 @@ namespace CharControl
     
         void Update()
         {
+            UpdateInputs();
         }
     
         void FixedUpdate()
         {
+            UpdateState();
+
+            if ( _charMotions.ContainsKey(_currentState) ) {
+                _charMotions[_currentState].UpdateInputs(_inputs);
+                _charMotions[_currentState].ProcessMotion();
+            }
+        }
+
+
+         private void UpdateState()
+        {
+            _previousState = _currentState;
+
+            // GET SURFACE STATE
+            _surface.Check();
+            if (_surface.contactSeparation < (_charCollider.bounds.extents.y + 0.2f) ) {
+
+                if ( Vector3.Angle(_surface.contactPointNormal, Vector3.up) < 30 )
+                    _currentState = CharState.Walking;              // GROUNDED
+                else 
+                    _currentState = CharState.Sliding;              // SLIDING
+
+            } else {
+                _currentState = CharState.Freefalling;              // FALLING
+            }
+
+            if (_previousState != _currentState)
+            {
+                Debug.Log("State:" + _previousState + " => State:" + _currentState);
+
+                if ( _charMotions.ContainsKey(_currentState) )
+                    if (_charMotions.ContainsKey(_previousState))
+                        _charMotions[_currentState].BeginMotion( _charMotions[_previousState].EndMotion() );
+                    else
+                        _charMotions[_currentState].BeginMotion( Vector3.zero );
+            }
         }
     
     
