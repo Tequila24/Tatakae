@@ -7,13 +7,7 @@ namespace CharControl
 {
     public class WalkMotion : Motion
     {
-        InputState _inputs;
-        Vector3 _velocity;
-
-        Rigidbody _charBody;
-        Collider _charCollider;
-        SurfaceController _surface;
-
+        private SurfaceController _surface;
 
         public WalkMotion(Rigidbody charBody, Collider charCollider, SurfaceController surface)
         {
@@ -46,12 +40,15 @@ namespace CharControl
 
             // APPLY VELOCITIES
             _velocity = Vector3.Lerp(_velocity, step, 0.2f);
-            _charBody.MovePosition(_charBody.transform.position - heightAdjust + _velocity);
+            _charBody.MovePosition(_charBody.transform.position - heightAdjust + _velocity + (_surface.contactPointVelocity * Time.deltaTime) );
             _charBody.velocity = Vector3.zero;
 
 
             // APPLY ROTATION
-            _charBody.transform.rotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);
+            _charBody.MoveRotation(Quaternion.Euler(0, _inputs.mousePositionX, 0));
+            //_charBody.transform.rotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);
+            //_charBody.transform.rotation *= Quaternion.Euler(0, _surface.angularVelocity.y * Mathf.Rad2Deg, 0);
+            _charBody.angularVelocity = new Vector3(0, _surface.angularVelocity.y, 0);
         }
 
         public override Vector3 EndMotion() 

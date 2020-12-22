@@ -60,8 +60,9 @@ namespace CharControl
             _surface = new SurfaceController(_charCollider);
 
             _charMotions = new Dictionary<CharState, Motion>();
-            _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody, _charCollider, _surface) );
+            _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody, _charCollider) );
             _charMotions.Add(CharState.Walking, new WalkMotion(_charBody, _charCollider, _surface) );
+            _charMotions.Add(CharState.Sliding, new SlideMotion(_charBody, _charCollider, _surface) );
         }
 
 
@@ -102,9 +103,9 @@ namespace CharControl
 
             // GET SURFACE STATE
             _surface.Check();
-            if (_surface.contactSeparation < (_charCollider.bounds.extents.y + 0.2f) ) {
+            if (_surface.contactSeparation < (_charCollider.bounds.extents.y * 2.0f) ) {
 
-                if ( Vector3.Angle(_surface.contactPointNormal, Vector3.up) < 30 )
+                if ( Vector3.Angle(_surface.contactPointNormal, Vector3.up) < 50.0f )
                     _currentState = CharState.Walking;              // GROUNDED
                 else 
                     _currentState = CharState.Sliding;              // SLIDING

@@ -7,15 +7,7 @@ namespace CharControl
 {
     public class FreefallMotion : Motion
     {
-        InputState _inputs;
-        Vector3 _velocity;
-
-        Rigidbody _charBody;
-        Collider _charCollider;
-        SurfaceController _surface;
-
-
-        public FreefallMotion(Rigidbody charBody, Collider charCollider, SurfaceController surface)
+        public FreefallMotion(Rigidbody charBody, Collider charCollider)
         {
             _charBody = charBody;
             _charCollider = charCollider;
@@ -42,7 +34,7 @@ namespace CharControl
 
         public override Vector3 EndMotion() 
         {
-            return _velocity;
+            return (_velocity + _charBody.velocity) * Time.deltaTime;
         }
     }
 }

@@ -56,9 +56,13 @@ namespace CharControl
             contactSeparation = (objectCollider.bounds.center - contactPoint).y;
             //Debug.Log(contactSeparation);
 
-            contactPointVelocity = Vector3.zero;
-            angularVelocity = Vector3.zero;
-            downhillVector = Vector3.Cross(contactPointNormal, Vector3.Cross(contactPointNormal, Vector3.up));
+            Rigidbody surfaceBody = surfaceObject.GetComponent<Rigidbody>();
+            if ( surfaceBody != null) {
+                contactPointVelocity = surfaceBody.GetPointVelocity(contactPoint);
+                angularVelocity = surfaceBody.angularVelocity;
+                Debug.Log(angularVelocity.y);
+            }
+            downhillVector = Vector3.Cross(contactPointNormal, Vector3.Cross(contactPointNormal, Vector3.up)).normalized;
 
             rotationToNormal = Quaternion.FromToRotation(Vector3.up, contactPointNormal);
             rotationFromNormal = Quaternion.Inverse(rotationToNormal);
