@@ -31,7 +31,7 @@ public class RotatablePlatform : MonoBehaviour {
 
 		//thisBody.velocity = desiredPosition - this.transform.position;
 
-		thisBody.angularVelocity = new Vector3(Mathf.Sin(time) * X_Multiplier, Mathf.Sin(time) * Y_Multiplier, Mathf.Sin(time) * X_Multiplier);
+		thisBody.angularVelocity = new Vector3(0, Y_Multiplier, 0);
 	}
 
 

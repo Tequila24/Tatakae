@@ -23,35 +23,42 @@ namespace CharControl
 
         public override void BeginMotion(Vector3 oldVelocity)
         {
-            _velocity = oldVelocity;
-
             _charBody.useGravity = false;
             _charBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+
+            Vector3 heightAdjust = new Vector3(0, _surface.contactSeparation - (_charCollider.bounds.extents.y + 0.2f));
+            _charBody.transform.position -= heightAdjust;
+
+            _velocity = Vector3.Project(oldVelocity, _surface.contactPointNormal);
         }
 
         public override void ProcessMotion()
         {
-            Vector3 heightAdjust = new Vector3(0, _surface.contactSeparation - (_charCollider.bounds.extents.y + 0.1f), 0) * 0.4f;
-            Vector3 step =  _surface.rotationToNormal *                                                                             //rotation to surface
-                            Quaternion.Euler(0, _inputs.mousePositionX, 0) *                                                        // rotation to horizontal lookDirection
-                            new Vector3(_inputs.right - _inputs.left, 0 , _inputs.forward - _inputs.backward) *                     // step 
+            Quaternion lookRotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);          // rotation to mouse look
+
+            Vector3 step =  (_charBody.transform.forward * (_inputs.forward - _inputs.backward) + 
+                             _charBody.transform.right * (_inputs.right - _inputs.left) ) * 
                             0.1f ;                                                                                                  // walk speed
-
-
-            // APPLY VELOCITIES
-            _velocity = Vector3.Lerp(_velocity, step, 0.2f);
-            _charBody.MovePosition(_charBody.transform.position - heightAdjust + _velocity + (_surface.contactPointVelocity * Time.deltaTime) );
+            
+            // VELOCITIES
             _charBody.velocity = Vector3.zero;
+            _velocity = Vector3.Lerp(_velocity, step, 0.5f);
+            
+            _charBody.transform.position += _surface.rotationToNormal * _velocity + 
+                                            (Quaternion.Euler(_surface.angularVelocity) * (_surface.contactPointVelocity * Time.deltaTime)) ;
 
 
-            // APPLY ROTATION
-            _charBody.MoveRotation(Quaternion.Euler(0, _inputs.mousePositionX, 0));
-            //_charBody.transform.rotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);
-            //_charBody.transform.rotation *= Quaternion.Euler(0, _surface.angularVelocity.y * Mathf.Rad2Deg, 0);
-            _charBody.angularVelocity = new Vector3(0, _surface.angularVelocity.y, 0);
+            // ROTATION
+            _charBody.angularVelocity = Vector3.zero;
+
+            if (step.sqrMagnitude > 0) 
+                _charBody.transform.rotation = Quaternion.Lerp( _charBody.transform.rotation, 
+                                                                lookRotation,
+                                                                0.1f);
+            _charBody.transform.rotation = _charBody.transform.rotation * Quaternion.Euler(0, _surface.angularVelocity.y, 0);
         }
 
-        public override Vector3 EndMotion() 
+        public override Vector3 EndMotion()
         {
             return _velocity;
         }

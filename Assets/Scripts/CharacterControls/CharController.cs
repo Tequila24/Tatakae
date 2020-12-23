@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-//[RequireComponent(typeof(Rigidbody))]
-//[RequireComponent(typeof(Collider))]
-
 namespace CharControl
 {
     public enum CharState 
@@ -34,7 +31,10 @@ namespace CharControl
             public float mousePositionY;
     };
 
-        
+
+    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(Collider))]      
+
     public class CharController : MonoBehaviour
     {
         private SurfaceController _surface;
@@ -65,6 +65,12 @@ namespace CharControl
             _charMotions.Add(CharState.Sliding, new SlideMotion(_charBody, _charCollider, _surface) );
         }
 
+    
+        void Update()
+        {
+            UpdateInputs();
+        }
+    
 
         public void UpdateInputs()
         {
@@ -80,12 +86,8 @@ namespace CharControl
             _inputs.mousePositionX += _inputs.mouseDeltaX;
             _inputs.mousePositionY += _inputs.mouseDeltaY;
         }
-    
-        void Update()
-        {
-            UpdateInputs();
-        }
-    
+
+
         void FixedUpdate()
         {
             UpdateState();
@@ -103,20 +105,24 @@ namespace CharControl
 
             // GET SURFACE STATE
             _surface.Check();
-            if (_surface.contactSeparation < (_charCollider.bounds.extents.y * 2.0f) ) {
+            if (_surface.contactSeparation < (_charCollider.bounds.extents.y + 0.2f) ) 
+            {
 
                 if ( Vector3.Angle(_surface.contactPointNormal, Vector3.up) < 50.0f )
                     _currentState = CharState.Walking;              // GROUNDED
                 else 
                     _currentState = CharState.Sliding;              // SLIDING
 
-            } else {
+            } else 
+            {
+
                 _currentState = CharState.Freefalling;              // FALLING
+
             }
 
             if (_previousState != _currentState)
             {
-                Debug.Log("State:" + _previousState + " => State:" + _currentState);
+                Debug.Log(_previousState + " => " + _currentState);
 
                 if ( _charMotions.ContainsKey(_currentState) )
                     if (_charMotions.ContainsKey(_previousState))

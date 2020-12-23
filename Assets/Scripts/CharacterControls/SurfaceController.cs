@@ -16,6 +16,7 @@ namespace CharControl
         public float contactSeparation;
 	    public Vector3 contactPointVelocity;
 	    public Vector3 angularVelocity;
+        public Vector3 fullRotation;
         public Vector3 downhillVector;
         public Quaternion rotationToNormal;
         public Quaternion rotationFromNormal;
@@ -60,7 +61,7 @@ namespace CharControl
             if ( surfaceBody != null) {
                 contactPointVelocity = surfaceBody.GetPointVelocity(contactPoint);
                 angularVelocity = surfaceBody.angularVelocity;
-                Debug.Log(angularVelocity.y);
+                fullRotation += angularVelocity;
             }
             downhillVector = Vector3.Cross(contactPointNormal, Vector3.Cross(contactPointNormal, Vector3.up)).normalized;
 
@@ -81,6 +82,7 @@ namespace CharControl
             contactSeparation = Mathf.Infinity;
             contactPointVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;
+            fullRotation = Vector3.zero;
             downhillVector = Vector3.zero;
 
             rotationToNormal = Quaternion.identity;

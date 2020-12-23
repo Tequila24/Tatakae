@@ -23,7 +23,9 @@ namespace CharControl
             _velocity = oldVelocity;
 
             _charBody.useGravity = true;
-            _charBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            _charBody.constraints = RigidbodyConstraints.FreezeRotationX | 
+                                    RigidbodyConstraints.FreezeRotationY |
+                                    RigidbodyConstraints.FreezeRotationZ;
         }
 
         public override void ProcessMotion()
