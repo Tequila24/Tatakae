@@ -20,23 +20,23 @@ namespace CharControl
 
         public override void BeginMotion(Vector3 oldVelocity)
         {
-            _velocity = oldVelocity;
-
             _charBody.useGravity = true;
-            _charBody.constraints = RigidbodyConstraints.FreezeRotationX | 
-                                    RigidbodyConstraints.FreezeRotationY |
-                                    RigidbodyConstraints.FreezeRotationZ;
+            _charBody.constraints = RigidbodyConstraints.None;
+
+            _velocity = oldVelocity;
+            _charBody.velocity = oldVelocity;
         }
 
         public override void ProcessMotion()
         {
-            _velocity = Vector3.Lerp(_velocity, Vector3.zero, 0.001f);
-            _charBody.MovePosition(_charBody.transform.position + _velocity);
+            _velocity = Vector3.Lerp(_velocity, Vector3.zero, 0.1f);
+            _charBody.MovePosition(_charBody.transform.position + _velocity );
         }
 
         public override Vector3 EndMotion() 
         {
-            return (_velocity + _charBody.velocity) * Time.deltaTime;
+            Vector3 vOut = _charBody.velocity * Time.deltaTime + _velocity;
+            return (vOut);
         }
     }
 }

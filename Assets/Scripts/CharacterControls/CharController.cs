@@ -42,11 +42,13 @@ namespace CharControl
         private Collider _charCollider;
     
         private InputState _inputs;
-
+        
+        [SerializeField]
         private CharState _currentState;
         private CharState _previousState;
 
         private Dictionary<CharState, Motion> _charMotions;
+
 
     
         void OnValidate()
@@ -99,13 +101,13 @@ namespace CharControl
         }
 
 
-         private void UpdateState()
+        private void UpdateState()
         {
             _previousState = _currentState;
 
             // GET SURFACE STATE
             _surface.Check();
-            if (_surface.contactSeparation < (_charCollider.bounds.extents.y + 0.2f) ) 
+            if (_surface.contactSeparation < (_charCollider.bounds.extents.y + WalkMotion.stairHeight) ) 
             {
 
                 if ( Vector3.Angle(_surface.contactPointNormal, Vector3.up) < 50.0f )
@@ -122,7 +124,7 @@ namespace CharControl
 
             if (_previousState != _currentState)
             {
-                Debug.Log(_previousState + " => " + _currentState);
+                //Debug.Log(_previousState + " => " + _currentState);
 
                 if ( _charMotions.ContainsKey(_currentState) )
                     if (_charMotions.ContainsKey(_previousState))

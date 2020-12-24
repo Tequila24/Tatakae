@@ -15,6 +15,7 @@ namespace CharControl
 	    public Vector3 contactPointNormal;
         public float contactSeparation;
 	    public Vector3 contactPointVelocity;
+        public Vector3 contactPointRelativeVelocity;
 	    public Vector3 angularVelocity;
         public Vector3 fullRotation;
         public Vector3 downhillVector;
@@ -41,7 +42,8 @@ namespace CharControl
                                     -Vector3.up * objectCollider.bounds.size.y*2,
                                     out surfaceRay,
                                     objectCollider.bounds.size.y) ) {
-            	Set(surfaceRay);
+                if ( !(surfaceRay.transform.IsChildOf(objectCollider.transform)) )
+            	    Set(surfaceRay);
             } else {
             	Reset();
             }
@@ -60,6 +62,7 @@ namespace CharControl
             Rigidbody surfaceBody = surfaceObject.GetComponent<Rigidbody>();
             if ( surfaceBody != null) {
                 contactPointVelocity = surfaceBody.GetPointVelocity(contactPoint);
+                contactPointRelativeVelocity = surfaceBody.GetRelativePointVelocity(contactPoint);
                 angularVelocity = surfaceBody.angularVelocity;
                 fullRotation += angularVelocity;
             }
@@ -81,6 +84,7 @@ namespace CharControl
             contactPointNormal = Vector3.zero;
             contactSeparation = Mathf.Infinity;
             contactPointVelocity = Vector3.zero;
+            contactPointRelativeVelocity = Vector3.zero;
             angularVelocity = Vector3.zero;
             fullRotation = Vector3.zero;
             downhillVector = Vector3.zero;

@@ -7,6 +7,7 @@ namespace CharControl
 {
     public class WalkMotion : Motion
     {
+        public static float stairHeight = 0.4f;
         private SurfaceController _surface;
 
         public WalkMotion(Rigidbody charBody, Collider charCollider, SurfaceController surface)
@@ -24,12 +25,14 @@ namespace CharControl
         public override void BeginMotion(Vector3 oldVelocity)
         {
             _charBody.useGravity = false;
-            _charBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            _charBody.constraints = RigidbodyConstraints.FreezeRotationX | 
+                                    RigidbodyConstraints.FreezeRotationZ;
+            
 
-            Vector3 heightAdjust = new Vector3(0, _surface.contactSeparation - (_charCollider.bounds.extents.y + 0.2f));
+            Vector3 heightAdjust = new Vector3(0, _surface.contactSeparation - (_charCollider.bounds.extents.y + stairHeight*0.8f));
             _charBody.transform.position -= heightAdjust;
 
-            _velocity = Vector3.Project(oldVelocity, _surface.contactPointNormal);
+            _velocity = Vector3.ProjectOnPlane(oldVelocity, _surface.contactPointNormal);
         }
 
         public override void ProcessMotion()
@@ -44,9 +47,9 @@ namespace CharControl
             _charBody.velocity = Vector3.zero;
             _velocity = Vector3.Lerp(_velocity, step, 0.5f);
             
-            _charBody.transform.position += _surface.rotationToNormal * _velocity + 
-                                            (Quaternion.Euler(_surface.angularVelocity) * (_surface.contactPointVelocity * Time.deltaTime)) ;
-
+            _charBody.MovePosition( _charBody.transform.position + 
+                                    _surface.rotationToNormal * _velocity + 
+                                    _surface.contactPointRelativeVelocity * Time.deltaTime );
 
             // ROTATION
             _charBody.angularVelocity = Vector3.zero;
@@ -55,7 +58,12 @@ namespace CharControl
                 _charBody.transform.rotation = Quaternion.Lerp( _charBody.transform.rotation, 
                                                                 lookRotation,
                                                                 0.1f);
-            _charBody.transform.rotation = _charBody.transform.rotation * Quaternion.Euler(0, _surface.angularVelocity.y, 0);
+            else
+                _charBody.transform.rotation = Quaternion.Lerp( _charBody.transform.rotation, 
+                                                                Quaternion.FromToRotation(Vector3.forward,
+                                                                                          Vector3.ProjectOnPlane(_charBody.transform.forward, Vector3.up)),
+                                                                0.1f );
+            //_charBody.transform.rotation = _charBody.transform.rotation * Quaternion.Euler(0, _surface.angularVelocity.y, 0);
         }
 
         public override Vector3 EndMotion()
