@@ -7,10 +7,9 @@ namespace CharControl
 {
     public class FreefallMotion : Motion
     {
-        public FreefallMotion(Rigidbody charBody, Collider charCollider)
+        public FreefallMotion(Rigidbody charBody)
         {
             _charBody = charBody;
-            _charCollider = charCollider;
         }
 
         public override void UpdateInputs(InputState newInputs)

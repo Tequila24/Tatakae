@@ -37,7 +37,6 @@ namespace CharControl
 
     public class CharController : MonoBehaviour
     {
-        private SurfaceController _surface;
         private Rigidbody _charBody;
         private Collider _charCollider;
     
@@ -59,12 +58,11 @@ namespace CharControl
         {
             _charBody = gameObject.GetComponent<Rigidbody>();
             _charCollider = gameObject.GetComponent<Collider>();
-            _surface = new SurfaceController(_charCollider);
 
             _charMotions = new Dictionary<CharState, Motion>();
-            _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody, _charCollider) );
-            _charMotions.Add(CharState.Walking, new WalkMotion(_charBody, _charCollider, _surface) );
-            _charMotions.Add(CharState.Sliding, new SlideMotion(_charBody, _charCollider, _surface) );
+            _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody) );
+            _charMotions.Add(CharState.Walking, new WalkMotion(_charBody, _charCollider) );
+            //_charMotions.Add(CharState.Sliding, new SlideMotion(_charBody, _charCollider, _surface) );
         }
 
     
@@ -105,18 +103,17 @@ namespace CharControl
         {
             _previousState = _currentState;
 
-            // GET SURFACE STATE
-            _surface.Check();
-            if (_surface.contactSeparation < (_charCollider.bounds.extents.y + WalkMotion.stairHeight) ) 
-            {
 
-                if ( Vector3.Angle(_surface.contactPointNormal, Vector3.up) < 50.0f )
-                    _currentState = CharState.Walking;              // GROUNDED
-                else 
-                    _currentState = CharState.Sliding;              // SLIDING
+            if ( Physics.BoxCast(   _charBody.transform.position,
+                                    _charCollider.bounds.extents,
+                                    Physics.gravity,
+                                    _charBody.transform.rotation,
+                                    _charCollider.bounds.size.y
+                                ) ) {
+                Debug.Break();
+                _currentState = CharState.Walking;              // GROUNDED
 
-            } else 
-            {
+            } else {
 
                 _currentState = CharState.Freefalling;              // FALLING
 
@@ -124,14 +121,17 @@ namespace CharControl
 
             if (_previousState != _currentState)
             {
-                //Debug.Log(_previousState + " => " + _currentState);
+                Debug.Log(_previousState + " => " + _currentState);
 
                 if ( _charMotions.ContainsKey(_currentState) )
-                    if (_charMotions.ContainsKey(_previousState))
+                    if (_charMotions.ContainsKey(_previousState)) {
                         _charMotions[_currentState].BeginMotion( _charMotions[_previousState].EndMotion() );
-                    else
+                    } else {
                         _charMotions[_currentState].BeginMotion( Vector3.zero );
+                    }
             }
+
+
         }
     
     

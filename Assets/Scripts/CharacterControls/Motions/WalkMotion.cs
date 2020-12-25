@@ -29,9 +29,6 @@ namespace CharControl
                                     RigidbodyConstraints.FreezeRotationZ;
             
 
-            Vector3 heightAdjust = new Vector3(0, _surface.contactSeparation - (_charCollider.bounds.extents.y + stairHeight*0.8f));
-            _charBody.transform.position -= heightAdjust;
-
             _velocity = Vector3.ProjectOnPlane(oldVelocity, _surface.contactPointNormal);
         }
 

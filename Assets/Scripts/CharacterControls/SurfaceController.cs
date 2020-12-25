@@ -4,13 +4,10 @@ using UnityEngine;
 
 
 namespace CharControl
-{  
-
-    public class SurfaceController
+{
+    public struct Surface
     {
-        private Collider objectCollider;
-        
-	    public GameObject surfaceObject;
+        public GameObject surfaceObject;
 	    public Vector3 contactPoint;
 	    public Vector3 contactPointNormal;
         public float contactSeparation;
@@ -22,42 +19,11 @@ namespace CharControl
         public Quaternion rotationToNormal;
         public Quaternion rotationFromNormal;
 
-        public SurfaceController(Collider newCollider)
-        {
-            objectCollider = newCollider;
-        }
-
-        public void Check()
-        {
-            RaycastHit surfaceRay;
-
-            
-            Debug.DrawRay(  objectCollider.bounds.center,
-                            -Vector3.up * objectCollider.bounds.size.y*2, 
-                            Color.black, 
-                            Time.deltaTime);
-
-
-            if (Physics.Raycast(    objectCollider.bounds.center,
-                                    -Vector3.up * objectCollider.bounds.size.y*2,
-                                    out surfaceRay,
-                                    objectCollider.bounds.size.y) ) {
-                if ( !(surfaceRay.transform.IsChildOf(objectCollider.transform)) )
-            	    Set(surfaceRay);
-            } else {
-            	Reset();
-            }
-
-        }
-
         public void Set(RaycastHit rayHit)
         {
             surfaceObject = rayHit.transform.gameObject;
             contactPoint = rayHit.point;
             contactPointNormal = rayHit.normal;
-
-            contactSeparation = (objectCollider.bounds.center - contactPoint).y;
-            //Debug.Log(contactSeparation);
 
             Rigidbody surfaceBody = surfaceObject.GetComponent<Rigidbody>();
             if ( surfaceBody != null) {
@@ -91,6 +57,31 @@ namespace CharControl
 
             rotationToNormal = Quaternion.identity;
             rotationFromNormal = Quaternion.identity;
+        }
+    }
+    
+    public class SurfaceController
+    {
+        static public Surface GetSurface(Vector3 rayPosition, Vector3 rayDirection, float distance, Transform parent)
+        {
+            Surface newSurface = new Surface();
+
+            RaycastHit surfaceRay;
+            
+            Debug.DrawRay(  rayPosition,
+                            rayDirection.normalized * distance, 
+                            Color.black, 
+                            Time.deltaTime);
+
+
+            if (Physics.Raycast(    rayPosition, rayDirection, out surfaceRay, distance) ) {
+                if ( !(surfaceRay.transform.IsChildOf(parent)) )
+            	    newSurface.Set(surfaceRay);
+            } else {
+            	newSurface.Reset();
+            }
+
+        return newSurface;
         }
     }
 }
