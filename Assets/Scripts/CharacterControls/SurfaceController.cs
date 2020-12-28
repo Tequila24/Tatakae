@@ -70,7 +70,7 @@ namespace CharControl
             
             Debug.DrawRay(  rayPosition,
                             rayDirection.normalized * distance, 
-                            Color.black, 
+                            Color.red, 
                             Time.deltaTime);
 
 

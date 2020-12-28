@@ -19,7 +19,7 @@ namespace CharControl
 
         abstract public void ProcessMotion();
 
-        abstract public Vector3 EndMotion();
+        abstract public Vector3 GetVelocity();
     }
 
 }

@@ -23,19 +23,17 @@ namespace CharControl
             _charBody.constraints = RigidbodyConstraints.None;
 
             _velocity = oldVelocity;
-            _charBody.velocity = oldVelocity;
         }
 
         public override void ProcessMotion()
         {
-            _velocity = Vector3.Lerp(_velocity, Vector3.zero, 0.1f);
+            _velocity = Vector3.Lerp(_velocity, Vector3.zero, 0.01f);
             _charBody.MovePosition(_charBody.transform.position + _velocity );
         }
 
-        public override Vector3 EndMotion() 
+        public override Vector3 GetVelocity() 
         {
-            Vector3 vOut = _charBody.velocity * Time.deltaTime + _velocity;
-            return (vOut);
+            return (_charBody.velocity * Time.deltaTime);
         }
     }
 }
