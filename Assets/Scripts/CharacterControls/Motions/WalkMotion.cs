@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using LogToFile;
 
 namespace CharControl
 {
@@ -11,6 +11,8 @@ namespace CharControl
         SurfaceController sControl;
         Surface _currentSurface;
         Surface _nextSurface;
+
+        FileLog flog;
 
         public WalkMotion(Rigidbody charBody, Collider charCollider)
         {
@@ -33,14 +35,44 @@ namespace CharControl
             _charBody.angularVelocity = Vector3.zero;
             _charBody.rotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);
 
-            UpdateSurfaces();
-            _velocity = Vector3.ProjectOnPlane(oldVelocity, _currentSurface.contactPointNormal);
 
+            _currentSurface = SurfaceController.GetSurface( _charBody.transform.position, 
+                                                            Physics.gravity, 
+                                                            _charCollider.bounds.size.y, 
+                                                            _charBody.transform);
+
+            _velocity = Vector3.ProjectOnPlane(oldVelocity, _currentSurface.contactPointNormal);
         }
 
         public override void ProcessMotion()
         {
-            UpdateSurfaces();
+            _charBody.velocity = Vector3.zero;
+            
+            _currentSurface = SurfaceController.GetSurface( _charBody.transform.position, 
+                                                            Physics.gravity, 
+                                                            _charCollider.bounds.size.y, 
+                                                            _charBody.transform);
+
+            float currentSurfaceIncline = Vector3.Angle(Vector3.up, _currentSurface.contactPointNormal);
+
+            if (currentSurfaceIncline < 30) {
+                // walk or stairs
+                
+            } else {
+                // sliding
+                _velocity = Vector3.Lerp(_velocity, Vector3.Project(Physics.gravity * Time.deltaTime, _currentSurface.downhillVector), 0.2f);
+            }
+
+
+
+            _charBody.MovePosition(_charBody.transform.position + 
+                                   //rotationToElevation *           // Rotation to surface normal
+                                   _velocity
+                                   //_currentSurface.contactPointVelocity * Time.deltaTime + 
+                                   //heightAdjust
+                                   );
+
+            /*
 
             Quaternion lookRotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
 
@@ -56,8 +88,17 @@ namespace CharControl
             Vector3 toNextStep = _currentSurface.contactPoint - _nextSurface.contactPoint;
             Quaternion rotationToElevation = Quaternion.FromToRotation( Vector3.ProjectOnPlane(toNextStep, Vector3.up),
                                                                         toNextStep );
+            float nextStepHeight = _currentSurface.contactPoint.y - _nextSurface.contactPoint.y;
 
-            Vector3 heightAdjust = new Vector3(0, (_currentSurface.contactPoint.y + _charCollider.bounds.extents.y * 1.2f) - _charBody.transform.position.y, 0) * 0.2f;
+        
+            if (nextStepHeight < 0.4f) {
+                canClimb = true;
+            } else {
+                canClimb = false;
+            }
+            Debug.Log(nextStepHeight);
+
+            Vector3 heightAdjust = new Vector3(0, (_currentSurface.contactPoint.y + _charCollider.bounds.extents.y * 1.4f) - _charBody.transform.position.y, 0) * 0.2f;
 
             _charBody.MovePosition(_charBody.transform.position + 
                                    rotationToElevation *           // Rotation to surface normal
@@ -93,9 +134,6 @@ namespace CharControl
                                                                 0.1f);
             //_charBody.transform.rotation = _charBody.transform.rotation * Quaternion.Euler(0, _surface.angularVelocity.y, 0);
             */
-
-
-
         }
 
         public override Vector3 GetVelocity()
@@ -105,14 +143,11 @@ namespace CharControl
 
         private void UpdateSurfaces()
         {
-            _currentSurface = SurfaceController.GetSurface( _charBody.transform.position, 
-                                                            Physics.gravity, 
-                                                            _charCollider.bounds.size.y, 
-                                                            _charBody.transform);
+            
 
-            _nextSurface = SurfaceController.GetSurface(_charBody.transform.position + (_velocity.normalized * _charCollider.bounds.extents.x), 
+            _nextSurface = SurfaceController.GetSurface(_charBody.transform.position + (_velocity.normalized * _charCollider.bounds.extents.x + _velocity), 
                                                         Physics.gravity, 
-                                                        _charCollider.bounds.size.y * 2, 
+                                                        _charCollider.bounds.size.y, 
                                                         _charBody.transform);
         }
 
