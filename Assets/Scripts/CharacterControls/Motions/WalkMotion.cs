@@ -77,10 +77,10 @@ namespace CharControl
 
 
                     // rotation
-                    Quaternion lookRotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
+                    Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
 
                     _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
-                                                                        lookRotation,
+                                                                        lookDirection,
                                                                         5.0f ) );
 
 

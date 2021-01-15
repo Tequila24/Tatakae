@@ -25,6 +25,9 @@ namespace CharControl
         public int jump;
         public int shift;
 
+        public int mouse1Held;
+        public int mouse2Held;
+
         public float mouseDeltaX;
         public float mouseDeltaY;
 
@@ -63,12 +66,12 @@ namespace CharControl
             _charMotions = new Dictionary<CharState, Motion>();
             _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody));
             _charMotions.Add(CharState.Walking, new WalkMotion(_charBody, _charCollider));
-            //_charMotions.Add(CharState.Sliding, new SlideMotion(_charBody, _charCollider, _surface) );
+            _charMotions.Add(CharState.Grappling, new GrappleMotion(_charBody));
         }
-
 
         void Update()
         {
+            Cursor.lockState = CursorLockMode.Locked;
             UpdateInputs();
         }
 
@@ -81,6 +84,9 @@ namespace CharControl
             _inputs.right = Input.GetKey(KeyCode.D) ? 1 : 0;
             _inputs.jump = Input.GetKeyUp(KeyCode.Space) ? 1 : 0;
             _inputs.shift = Input.GetKey(KeyCode.LeftShift) ? 1 : 0;
+
+            _inputs.mouse1Held = Input.GetKey(KeyCode.Mouse0) ? 1 : 0;
+            _inputs.mouse2Held = Input.GetKey(KeyCode.Mouse1) ? 1 : 0;
 
             _inputs.mouseDeltaX = Input.GetAxis("Mouse X");
             _inputs.mouseDeltaY = -Input.GetAxis("Mouse Y");
@@ -106,15 +112,24 @@ namespace CharControl
         {
             _previousState = _currentState;
 
+            Debug.Log(_inputs.mouse1Held);
+            if (_inputs.mouse1Held > 0) {
+                if ( (_charMotions[CharState.Grappling] as GrappleMotion).TryGrapple(Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0)) )
+                {
+                    _currentState = CharState.Grappling; 
+                }
+            } else {
+                if (Physics.Raycast(_charBody.transform.position, Physics.gravity, _charCollider.bounds.size.y * 0.8f))
+                {
+                    _currentState = CharState.Walking;              // GROUNDED
+                }
+                else
+                {
+                    _currentState = CharState.Freefalling;          // FALLING
+                }
+            }
 
-            if (Physics.Raycast(_charBody.transform.position, Physics.gravity, _charCollider.bounds.size.y * 0.8f))
-            {
-                _currentState = CharState.Walking;              // GROUNDED
-            }
-            else
-            {
-                _currentState = CharState.Freefalling;          // FALLING
-            }
+            
 
             if (_previousState != _currentState)
             {
@@ -130,7 +145,6 @@ namespace CharControl
                         _charMotions[_currentState].BeginMotion(Vector3.zero);
                     }
             }
-
 
         }
 
