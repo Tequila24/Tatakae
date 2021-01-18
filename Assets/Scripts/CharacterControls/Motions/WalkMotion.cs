@@ -81,7 +81,7 @@ namespace CharControl
 
                     _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
                                                                         lookDirection,
-                                                                        5.0f ) );
+                                                                        15.0f ) );
 
 
                 } else {

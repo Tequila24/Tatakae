@@ -22,13 +22,20 @@ namespace CharControl
             _charBody.useGravity = true;
             _charBody.constraints = RigidbodyConstraints.None;
 
-            _velocity = oldVelocity;
+            //_velocity = oldVelocity;
+            _charBody.velocity = oldVelocity / Time.deltaTime;
         }
 
         public override void ProcessMotion()
         {
-            _velocity = Vector3.Lerp(_velocity, Vector3.zero, 0.01f);
-            _charBody.MovePosition(_charBody.transform.position + _velocity );
+            //_velocity = Vector3.Lerp(_velocity, Vector3.zero, 0.01f);
+            //_charBody.MovePosition(_charBody.transform.position + _velocity );
+
+
+            Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
+            _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
+                                                                lookDirection,
+                                                                10.0f ) );
         }
 
         public override Vector3 GetVelocity() 

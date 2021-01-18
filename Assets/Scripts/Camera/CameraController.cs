@@ -18,7 +18,7 @@ public class CameraController : MonoBehaviour
         Vector3 offset = new Vector3( 1.5f, 1.5f, -5.0f );
         Quaternion rotation = _player.GetLookRotation();
 
-        this.transform.position = _player.transform.position + rotation * offset;
+        this.transform.position = Vector3.Lerp(this.transform.position, _player.transform.position + rotation * offset, 0.5f);
         this.transform.rotation = rotation;
     }
 }

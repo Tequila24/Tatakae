@@ -93,13 +93,13 @@ namespace CharControl
 
             _inputs.mousePositionX += _inputs.mouseDeltaX;
             _inputs.mousePositionY += _inputs.mouseDeltaY;
+
+            UpdateState();
         }
 
 
         void FixedUpdate()
         {
-            UpdateState();
-
             if (_charMotions.ContainsKey(_currentState))
             {
                 _charMotions[_currentState].UpdateInputs(_inputs);
@@ -112,13 +112,14 @@ namespace CharControl
         {
             _previousState = _currentState;
 
-            Debug.Log(_inputs.mouse1Held);
-            if (_inputs.mouse1Held > 0) {
+            if (Input.GetKeyDown(KeyCode.Mouse0) && Input.GetKey(KeyCode.Mouse0)) 
+            {
                 if ( (_charMotions[CharState.Grappling] as GrappleMotion).TryGrapple(Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0)) )
                 {
                     _currentState = CharState.Grappling; 
                 }
             } else {
+                if ( (_currentState != CharState.Grappling) || (!Input.GetKey(KeyCode.Mouse0)) )
                 if (Physics.Raycast(_charBody.transform.position, Physics.gravity, _charCollider.bounds.size.y * 0.8f))
                 {
                     _currentState = CharState.Walking;              // GROUNDED
