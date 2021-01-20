@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using LogToFile;
 
 namespace CharControl
 {
@@ -12,7 +12,9 @@ namespace CharControl
 
         private LineRenderer lineRender = null;
 
+        private Vector3 _inertia = Vector3.zero;
 
+        FileLog flog;
 
         public GrappleMotion(Rigidbody charBody)
         {
@@ -38,35 +40,52 @@ namespace CharControl
 
         public override void BeginMotion(Vector3 oldVelocity)
         {
-            _charBody.useGravity = false;
+            _charBody.useGravity = true;
             _charBody.constraints = RigidbodyConstraints.FreezeRotationX |
                                     RigidbodyConstraints.FreezeRotationZ;
 
             lineRender.enabled = true;
 
-            _velocity = oldVelocity;
+            _inertia = oldVelocity;
+            Debug.Log(_inertia.ToString("F6"));
         }
 
         public override void ProcessMotion()
         {
             toGrapplePoint = (grapplePoint - _charBody.transform.position).normalized;
 
+
             Quaternion lookRotation = Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0);
             Vector3 lookVector = Vector3.ProjectOnPlane(lookRotation * Vector3.forward, toGrapplePoint);
 
-
             _velocity = Vector3.Lerp(   _velocity, 
-                                        (toGrapplePoint + lookVector) * (20 + Mathf.Clamp(Vector3.Distance(_charBody.transform.position, grapplePoint), 0, 5 )),
-                                        0.01f);
+                                        (toGrapplePoint + lookVector) * (20),
+                                        0.1f);
 
-            _charBody.velocity = _velocity;
+            _inertia = Vector3.Slerp(    _inertia,
+                                        Vector3.zero,
+                                        0.00001f);
 
 
+            _charBody.velocity = _inertia + _velocity;
+
+
+
+            Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
+            _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
+                                                                lookDirection,
+                                                                10.0f ) );
+
+
+            // RENDER GRAPPLE LINE
             lineRender.SetPosition(1, _charBody.transform.position);
         }
 
         public override Vector3 GetVelocity()
         {
+            //_inertia = Vector3.zero;
+            //_velocity = Vector3.zero;
+
             lineRender.enabled = false;
             return _charBody.velocity * Time.deltaTime;
         }

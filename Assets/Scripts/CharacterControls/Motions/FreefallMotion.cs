@@ -7,6 +7,10 @@ namespace CharControl
 {
     public class FreefallMotion : Motion
     {
+
+        Vector3 _inertia = Vector3.zero;
+
+
         public FreefallMotion(Rigidbody charBody)
         {
             _charBody = charBody;
@@ -22,14 +26,13 @@ namespace CharControl
             _charBody.useGravity = true;
             _charBody.constraints = RigidbodyConstraints.None;
 
-            //_velocity = oldVelocity;
-            _charBody.velocity = oldVelocity / Time.deltaTime;
+            _inertia = oldVelocity;
         }
 
         public override void ProcessMotion()
         {
-            //_velocity = Vector3.Lerp(_velocity, Vector3.zero, 0.01f);
-            //_charBody.MovePosition(_charBody.transform.position + _velocity );
+            _inertia = Vector3.Lerp(_inertia, Vector3.zero, 0.04f);
+            _charBody.MovePosition(_charBody.transform.position + _inertia );
 
 
             Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look

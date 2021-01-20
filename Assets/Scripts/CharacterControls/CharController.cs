@@ -92,7 +92,7 @@ namespace CharControl
             _inputs.mouseDeltaY = -Input.GetAxis("Mouse Y");
 
             _inputs.mousePositionX += _inputs.mouseDeltaX;
-            _inputs.mousePositionY += _inputs.mouseDeltaY;
+            _inputs.mousePositionY = Mathf.Clamp(_inputs.mousePositionY + _inputs.mouseDeltaY, -90, 90);
 
             UpdateState();
         }
@@ -134,10 +134,10 @@ namespace CharControl
 
             if (_previousState != _currentState)
             {
-                Debug.Log(_previousState + " => " + _currentState);
+                //Debug.Log(_previousState + " => " + _currentState);
 
                 if (_charMotions.ContainsKey(_currentState))
-                    if (_charMotions.ContainsKey(_previousState))
+                    if (_charMotions.ContainsKey(_previousState))   
                     {
                         _charMotions[_currentState].BeginMotion(_charMotions[_previousState].GetVelocity());
                     }
