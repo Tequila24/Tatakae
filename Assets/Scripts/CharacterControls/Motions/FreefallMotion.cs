@@ -7,10 +7,6 @@ namespace CharControl
 {
     public class FreefallMotion : Motion
     {
-
-        Vector3 _inertia = Vector3.zero;
-
-
         public FreefallMotion(Rigidbody charBody)
         {
             _charBody = charBody;
@@ -23,19 +19,38 @@ namespace CharControl
 
         public override void BeginMotion(Vector3 oldVelocity)
         {
-            _charBody.useGravity = true;
-            _charBody.constraints = RigidbodyConstraints.None;
-
-            _inertia = oldVelocity;
+            _velocity = oldVelocity;
         }
 
         public override void ProcessMotion()
         {
-            _inertia = Vector3.Lerp(_inertia, Vector3.zero, 0.04f);
-            _charBody.MovePosition(_charBody.transform.position + _inertia );
+            Vector3 step = (_charBody.transform.forward * (_inputs.forward - _inputs.backward) +
+                                    _charBody.transform.right * (_inputs.right - _inputs.left)).normalized * 0.001f;
+            
+
+            // PROPERLY SMOOTH MOVEMENT
+            _velocity.x = Mathf.MoveTowards(_velocity.x + step.x, 0, 0.00035f );
+            _velocity.y = Mathf.MoveTowards(_velocity.y, Physics.gravity.y * 3, 0.0030f);
+            _velocity.z = Mathf.MoveTowards(_velocity.z + step.z, 0, 0.00035f );
+
+
+            // CHECK IF MOVEMENT BLOCKED
+            RaycastHit hit;
+            if (_charBody.SweepTest(_velocity * Time.deltaTime, out hit, _velocity.magnitude))
+            {
+                if (hit.collider.attachedRigidbody != null)
+                    hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity * _charBody.mass, hit.point, ForceMode.Impulse);
+                _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
+            }
+
+            // APPLY VELOCITY
+            _charBody.MovePosition( _charBody.transform.position + 
+                                    _velocity);
+
 
 
             Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
+
             _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
                                                                 lookDirection,
                                                                 10.0f ) );
@@ -43,7 +58,7 @@ namespace CharControl
 
         public override Vector3 GetVelocity() 
         {
-            return (_charBody.velocity * Time.deltaTime);
+            return _velocity;
         }
     }
 }

@@ -61,6 +61,7 @@ namespace CharControl
         void Start()
         {
             _charBody = gameObject.GetComponent<Rigidbody>();
+            _charBody.isKinematic = true;
             _charCollider = gameObject.GetComponent<Collider>();
 
             _charMotions = new Dictionary<CharState, Motion>();
@@ -153,6 +154,15 @@ namespace CharControl
         public Quaternion GetLookRotation()
         {
             return Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0);
+        }
+
+        public void OnCollisionStay()
+        {
+            /*Vector3 depenetrationDirection;
+                        float depenetrationDistance;
+                        Physics.ComputePenetration( _charCollider, _charBody.transform.position + _sumVelocity, _charBody.transform.rotation,
+                                                    hit.collider, hit.collider.transform.position, hit.collider.transform.rotation,
+                                                    out depenetrationDirection, out depenetrationDistance);*/
         }
     }
 }

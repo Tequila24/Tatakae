@@ -12,8 +12,6 @@ namespace CharControl
         Surface _currentSurface;
         Surface _nextSurface;
 
-        Vector3 _inertia = Vector3.zero;
-
         FileLog flog;
 
         public WalkMotion(Rigidbody charBody, Collider charCollider)
@@ -29,37 +27,21 @@ namespace CharControl
 
         public override void BeginMotion(Vector3 oldVelocity)
         {
-            _charBody.useGravity = false;
-            _charBody.constraints = RigidbodyConstraints.FreezeRotationX |
-                                    RigidbodyConstraints.FreezeRotationZ;
-
-            _charBody.velocity = Vector3.zero;
-            _charBody.angularVelocity = Vector3.zero;
-            //_charBody.rotation = Quaternion.Euler(0, _inputs.mousePositionX, 0);
-
-
             _currentSurface = SurfaceController.GetSurface( _charBody.transform.position, 
                                                             Physics.gravity, 
                                                             _charCollider.bounds.size.y, 
                                                             _charBody.transform);
 
-            _inertia = Vector3.ProjectOnPlane(oldVelocity, _currentSurface.contactPointNormal);
+            _velocity = Vector3.ProjectOnPlane(oldVelocity, _currentSurface.contactPointNormal);
         }
 
         public override void ProcessMotion()
         {
-            _charBody.velocity = Vector3.zero;
-            _charBody.angularVelocity = Vector3.zero;
-            
+            Debug.DrawRay(_charBody.transform.position, _velocity, Color.red, Time.deltaTime);
             _currentSurface = SurfaceController.GetSurface( _charBody.transform.position, 
                                                             Physics.gravity, 
                                                             _charCollider.bounds.size.y, 
                                                             _charBody.transform );
-
-            _inertia = Vector3.Lerp(    _inertia,
-                                        Vector3.zero,
-                                        0.05f);                                                            
-
             float currentSurfaceIncline = Vector3.Angle(Vector3.up, _currentSurface.contactPointNormal);
 
             if (currentSurfaceIncline < 30) {
@@ -71,22 +53,36 @@ namespace CharControl
                                     _charBody.transform.right * (_inputs.right - _inputs.left)).normalized *
                                     (_inputs.shift != 0 ? 0.15f : 0.05f);
 
-                    _velocity = Vector3.Lerp(_velocity, step, 0.2f);
-
+                    _velocity = Vector3.MoveTowards(_velocity, _currentSurface.rotationToNormal * step, 0.005f);
 
                     Vector3 heightAdjust = new Vector3(0, (_currentSurface.contactPoint.y + _charCollider.bounds.extents.y * 1.3f) - _charBody.transform.position.y, 0) * 0.2f;
 
 
+                    // CHECK IF MOVEMENT BLOCKED
+                    RaycastHit hit;
+                    if (_charBody.SweepTest(_velocity * Time.deltaTime, out hit, _velocity.magnitude))
+                    {
+                        if (hit.collider.attachedRigidbody != null)
+                            hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity * _charBody.mass, hit.point, ForceMode.Impulse);
+
+                        _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
+                    }
+
+
+                    // APPLY VELOCITY
                     _charBody.MovePosition( _charBody.transform.position + 
                                             heightAdjust + 
-                                            _currentSurface.rotationToNormal * _velocity +
-                                            _inertia);
+                                            _velocity);
 
 
 
-                    // rotation
+
+                    
                     Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
 
+
+
+                    // APPLY ROTATION
                     _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
                                                                         lookDirection,
                                                                         15.0f ) );
@@ -103,9 +99,19 @@ namespace CharControl
                 // sliding downhill
                 _velocity = Vector3.Lerp(_velocity, _currentSurface.downhillVector * 0.15f , 0.2f);
 
+                // CHECK IF MOVEMENT BLOCKED
+                Vector3 _sumVelocity =  _velocity;
+
+                RaycastHit hit;
+                if (_charBody.SweepTest(_sumVelocity * Time.deltaTime, out hit, _sumVelocity.magnitude))
+                {
+
+                    _sumVelocity = Vector3.ProjectOnPlane(_sumVelocity, hit.normal);
+                }
+
+                // APPLY VELOCITY
                 _charBody.MovePosition( _charBody.transform.position + 
-                                        _currentSurface.rotationToNormal * _velocity +
-                                        _inertia);
+                                        _sumVelocity);
 
                 _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
                                                                     Quaternion.LookRotation(_currentSurface.downhillVector, Vector3.up),
@@ -116,7 +122,7 @@ namespace CharControl
 
         public override Vector3 GetVelocity()
         {
-            return (_currentSurface.rotationToNormal * _velocity + _inertia);
+            return (_currentSurface.rotationToNormal * _velocity);
         }
 
     }
