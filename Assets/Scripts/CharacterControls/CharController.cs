@@ -65,9 +65,9 @@ namespace CharControl
             _charCollider = gameObject.GetComponent<Collider>();
 
             _charMotions = new Dictionary<CharState, Motion>();
-            _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody));
+            _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody, _charCollider));
             _charMotions.Add(CharState.Walking, new WalkMotion(_charBody, _charCollider));
-            _charMotions.Add(CharState.Grappling, new GrappleMotion(_charBody));
+            _charMotions.Add(CharState.Grappling, new GrappleMotion(_charBody, _charCollider));
         }
 
         void Update()
@@ -156,13 +156,7 @@ namespace CharControl
             return Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0);
         }
 
-        public void OnCollisionStay()
-        {
-            /*Vector3 depenetrationDirection;
-                        float depenetrationDistance;
-                        Physics.ComputePenetration( _charCollider, _charBody.transform.position + _sumVelocity, _charBody.transform.rotation,
-                                                    hit.collider, hit.collider.transform.position, hit.collider.transform.rotation,
-                                                    out depenetrationDirection, out depenetrationDistance);*/
-        }
+
+
     }
 }

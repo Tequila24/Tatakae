@@ -27,7 +27,7 @@ namespace CharControl
             {
                 return grappledObject.transform.position + grappledObject.transform.rotation * localGrapplePoint;
             }
-            public Vector3 GetDirection(Vector3 pointFrom)
+            public Vector3 GetFromTo(Vector3 pointFrom)
             {
                 return (GetWorldPoint() - pointFrom);
             }
@@ -37,9 +37,10 @@ namespace CharControl
         private LineRenderer lineRender = null;
 
 
-        public GrappleMotion(Rigidbody charBody)
+        public GrappleMotion(Rigidbody charBody, Collider charCollider)
         {
             _charBody = charBody;
+            _charCollider = charCollider;
 
             if (_charBody.GetComponent<LineRenderer>() == null)
                 lineRender = _charBody.gameObject.AddComponent<LineRenderer>();
@@ -54,17 +55,9 @@ namespace CharControl
 		    lineRender.startColor = lineRender.endColor = Color.black;
         }
 
-        public override void UpdateInputs(InputState newInputs)
-        {
-            _inputs = newInputs;
-        }
-
         public override void BeginMotion(Vector3 oldVelocity)
         {
-            _charBody.useGravity = true;
-            _charBody.constraints = RigidbodyConstraints.FreezeRotationX |
-                                    RigidbodyConstraints.FreezeRotationZ;
-
+            lineRender.positionCount = 2;
             lineRender.enabled = true;
             _velocity = oldVelocity;
         }
@@ -72,46 +65,62 @@ namespace CharControl
         public override void ProcessMotion()
         {
             Quaternion lookRotation = Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0);
-            Vector3 lookVector = Vector3.ProjectOnPlane(lookRotation * Vector3.forward, Grapple.GetDirection(_charBody.transform.position));
+            Vector3 lookVector = Vector3.ProjectOnPlane(lookRotation * Vector3.forward, Grapple.GetFromTo(_charBody.transform.position)).normalized;
 
-            _velocity = Vector3.MoveTowards(    _velocity, 
-                                                (Grapple.GetDirection(_charBody.transform.position) * 0.3f + lookVector * 0.2f),
-                                                0.01f);
+            Vector3 grappleDirection = Grapple.GetFromTo(_charBody.transform.position).normalized;
+            float grappleLength = Grapple.GetFromTo(_charBody.transform.position).magnitude;
+
+            Vector3 grappleAcceleration =   (grappleDirection * 0.005f + lookVector * 0.0008f)
+                                            /* Mathf.Pow( Mathf.Clamp01(grappleLength * 0.1f), 1.5f)*/
+                                            - (_velocity * 0.005f * _velocity.magnitude)
+                                            + Physics.gravity * Time.deltaTime * 0.003f;
+
+            _velocity += grappleAcceleration;
+            _velocity = Vector3.ClampMagnitude(_velocity, 0.5f);
 
             // CHECK IF MOVEMENT BLOCKED
             RaycastHit hit;
             if (_charBody.SweepTest(_velocity * Time.deltaTime, out hit, _velocity.magnitude))
             {
                 if (hit.collider.attachedRigidbody != null)
-                    hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity * _charBody.mass, hit.point, ForceMode.Impulse);
-                    
-                _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
+                    hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity, hit.point, ForceMode.Acceleration);
+                _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal); 
             }
+            Vector3 depenetrationVector = CheckCollision();
+                if (depenetrationVector.sqrMagnitude > 0 )
+                    _charBody.MovePosition(_charBody.transform.position + depenetrationVector);
+
+
+            // CHECK IF CHARCOLLIDER INSIDE ANOTHER COLLIDER
+
 
             // APPLY VELOCITY
             _charBody.MovePosition( _charBody.transform.position + 
                                     _velocity);
 
-            // APPLY FORCE TO GRAPPLED OBJECT
+            // APPLY ACCELERATION TO GRAPPLED OBJECT
             if (Grapple.grappledRigidbody != null)
-                Grapple.grappledRigidbody.AddForceAtPosition( _velocity, Grapple.GetWorldPoint(), ForceMode.Force);
+            {
+                Grapple.grappledRigidbody.AddForceAtPosition( -grappleAcceleration, Grapple.GetWorldPoint(), ForceMode.Acceleration);
+            }
+
 
 
             Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
-
             _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
                                                                 lookDirection,
                                                                 10.0f ) );
 
 
             // RENDER GRAPPLE LINE
-            lineRender.SetPosition(0, Grapple.GetWorldPoint() );
-            lineRender.SetPosition(1, _charBody.transform.position);
+            lineRender.SetPosition(1, Grapple.GetWorldPoint() );
+            lineRender.SetPosition(0, _charBody.transform.position);
         }
 
         public override Vector3 GetVelocity()
         {
             lineRender.enabled = false;
+            lineRender.positionCount = 0;
             return _velocity;
         }
 
@@ -120,10 +129,9 @@ namespace CharControl
         {
             bool isGrappled = false;
 
-
             RaycastHit rayHit;
             Debug.DrawLine( _charBody.transform.position,
-                            lookDirection * Vector3.forward * 100.0f,
+                            lookDirection * Vector3.forward * 300.0f,
                             Color.blue, 
                             0.5f);
             if (Physics.Raycast(    _charBody.transform.position, 
@@ -136,8 +144,6 @@ namespace CharControl
             } else {
                 isGrappled = false;
             }
-
-
 
             return isGrappled;
         }

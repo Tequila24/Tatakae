@@ -7,14 +7,10 @@ namespace CharControl
 {
     public class FreefallMotion : Motion
     {
-        public FreefallMotion(Rigidbody charBody)
+        public FreefallMotion(Rigidbody charBody, Collider charCollider)
         {
             _charBody = charBody;
-        }
-
-        public override void UpdateInputs(InputState newInputs)
-        {
-            _inputs = newInputs;
+            _charCollider = charCollider;
         }
 
         public override void BeginMotion(Vector3 oldVelocity)
@@ -39,9 +35,13 @@ namespace CharControl
             if (_charBody.SweepTest(_velocity * Time.deltaTime, out hit, _velocity.magnitude))
             {
                 if (hit.collider.attachedRigidbody != null)
-                    hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity * _charBody.mass, hit.point, ForceMode.Impulse);
+                    hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity, hit.point, ForceMode.Impulse);
                 _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
             }
+            Vector3 depenetrationVector = CheckCollision();
+            if (depenetrationVector.sqrMagnitude > 0 )
+                _charBody.transform.position += depenetrationVector;
+        
 
             // APPLY VELOCITY
             _charBody.MovePosition( _charBody.transform.position + 

@@ -20,11 +20,6 @@ namespace CharControl
             _charCollider = charCollider;
         }
 
-        public override void UpdateInputs(InputState newInputs)
-        {
-            _inputs = newInputs;
-        }
-
         public override void BeginMotion(Vector3 oldVelocity)
         {
             _currentSurface = SurfaceController.GetSurface( _charBody.transform.position, 
@@ -63,11 +58,12 @@ namespace CharControl
                     if (_charBody.SweepTest(_velocity * Time.deltaTime, out hit, _velocity.magnitude))
                     {
                         if (hit.collider.attachedRigidbody != null)
-                            hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity * _charBody.mass, hit.point, ForceMode.Impulse);
-
-                        _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
+                            hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity, hit.point, ForceMode.Impulse);
+                        _velocity = Vector3.ProjectOnPlane(Vector3.ProjectOnPlane(_velocity, hit.normal), _currentSurface.contactPointNormal);
                     }
-
+                    Vector3 depenetrationVector = CheckCollision();
+                    if (depenetrationVector.sqrMagnitude > 0 )
+                        _charBody.transform.position += Vector3.ProjectOnPlane(depenetrationVector, _currentSurface.contactPointNormal);
 
                     // APPLY VELOCITY
                     _charBody.MovePosition( _charBody.transform.position + 
@@ -75,12 +71,8 @@ namespace CharControl
                                             _velocity);
 
 
-
-
                     
                     Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
-
-
 
                     // APPLY ROTATION
                     _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
