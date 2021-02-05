@@ -14,10 +14,14 @@ namespace CharControl
 
         FileLog flog;
 
-        public WalkMotion(Rigidbody charBody, Collider charCollider)
+        public static WalkMotion Create(GameObject parent, Rigidbody charBody, Collider charCollider)
         {
-            _charBody = charBody;
-            _charCollider = charCollider;
+            WalkMotion motion = parent.AddComponent<WalkMotion>();
+
+            motion._charBody = charBody;
+            motion._charCollider = charCollider;
+
+            return motion;
         }
 
         public override void BeginMotion(Vector3 oldVelocity)
@@ -62,6 +66,8 @@ namespace CharControl
                         _velocity = Vector3.ProjectOnPlane(Vector3.ProjectOnPlane(_velocity, hit.normal), _currentSurface.contactPointNormal);
                     }
                     Vector3 depenetrationVector = CheckCollision();
+                    Debug.Log(depenetrationVector);
+
                     if (depenetrationVector.sqrMagnitude > 0 )
                         _charBody.transform.position += Vector3.ProjectOnPlane(depenetrationVector, _currentSurface.contactPointNormal);
 

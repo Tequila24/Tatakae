@@ -37,22 +37,27 @@ namespace CharControl
         private LineRenderer lineRender = null;
 
 
-        public GrappleMotion(Rigidbody charBody, Collider charCollider)
+        public static GrappleMotion Create(GameObject parent, Rigidbody charBody, Collider charCollider)
         {
-            _charBody = charBody;
-            _charCollider = charCollider;
+            GrappleMotion motion = parent.AddComponent<GrappleMotion>();
 
-            if (_charBody.GetComponent<LineRenderer>() == null)
-                lineRender = _charBody.gameObject.AddComponent<LineRenderer>();
+            motion._charBody = charBody;
+            motion._charCollider = charCollider;
+
+            if (motion._charBody.GetComponent<LineRenderer>() == null)
+                motion.lineRender = motion._charBody.gameObject.AddComponent<LineRenderer>();
             else
-                lineRender = _charBody.GetComponent<LineRenderer>();
+                motion.lineRender = motion._charBody.GetComponent<LineRenderer>();
 
-            lineRender.SetPosition(0, _charBody.transform.position);
-            lineRender.SetPosition(1, _charBody.transform.position);
-		    lineRender.positionCount = 2;
-		    lineRender.startWidth = lineRender.endWidth = 0.15f;
-		    lineRender.material = new Material(Shader.Find("Sprites/Default"));
-		    lineRender.startColor = lineRender.endColor = Color.black;
+
+            motion.lineRender.SetPosition(0, motion._charBody.transform.position);
+            motion.lineRender.SetPosition(1, motion._charBody.transform.position);
+		    motion.lineRender.positionCount = 2;
+		    motion.lineRender.startWidth = motion.lineRender.endWidth = 0.15f;
+		    motion.lineRender.material = new Material(Shader.Find("Sprites/Default"));
+		    motion.lineRender.startColor = motion.lineRender.endColor = Color.black;
+
+            return motion;
         }
 
         public override void BeginMotion(Vector3 oldVelocity)
@@ -71,7 +76,7 @@ namespace CharControl
             float grappleLength = Grapple.GetFromTo(_charBody.transform.position).magnitude;
 
             Vector3 grappleAcceleration =   (grappleDirection * 0.005f + lookVector * 0.0008f)
-                                            /* Mathf.Pow( Mathf.Clamp01(grappleLength * 0.1f), 1.5f)*/
+                                            * Mathf.Pow( Mathf.Clamp01(grappleLength * 0.1f), 1.5f)
                                             - (_velocity * 0.005f * _velocity.magnitude)
                                             + Physics.gravity * Time.deltaTime * 0.003f;
 

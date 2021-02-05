@@ -50,24 +50,26 @@ namespace CharControl
         private CharState _currentState;
         private CharState _previousState;
 
-        private Dictionary<CharState, Motion> _charMotions;
+        private Dictionary<CharState, Motion> _charMotions = new Dictionary<CharState, Motion>();
 
 
-
-        void OnValidate()
-        {
-            Start();
-        }
         void Start()
         {
-            _charBody = gameObject.GetComponent<Rigidbody>();
-            _charBody.isKinematic = true;
-            _charCollider = gameObject.GetComponent<Collider>();
+            Init();
+        }
 
-            _charMotions = new Dictionary<CharState, Motion>();
-            _charMotions.Add(CharState.Freefalling, new FreefallMotion(_charBody, _charCollider));
-            _charMotions.Add(CharState.Walking, new WalkMotion(_charBody, _charCollider));
-            _charMotions.Add(CharState.Grappling, new GrappleMotion(_charBody, _charCollider));
+        void Init()
+        {
+            if (_charBody == null)
+                _charBody = gameObject.GetComponent<Rigidbody>();
+            _charBody.isKinematic = true;
+
+            if (_charCollider == null) 
+                _charCollider = gameObject.GetComponent<Collider>();
+
+            _charMotions.Add(CharState.Freefalling, FreefallMotion.Create(this.gameObject, _charBody, _charCollider));
+            _charMotions.Add(CharState.Walking, WalkMotion.Create(this.gameObject, _charBody, _charCollider));
+            _charMotions.Add(CharState.Grappling, GrappleMotion.Create(this.gameObject, _charBody, _charCollider));
         }
 
         void Update()

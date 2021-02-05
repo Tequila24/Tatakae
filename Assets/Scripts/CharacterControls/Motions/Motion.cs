@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CharControl
 {
-    abstract public class Motion
+    abstract public class Motion : MonoBehaviour
     {
         protected InputState _inputs;
         protected Vector3 _velocity;
@@ -17,7 +17,6 @@ namespace CharControl
         {
             _inputs = newInputs;
         }
-
 
         abstract public void BeginMotion(Vector3 oldVelocity);
 
@@ -33,7 +32,8 @@ namespace CharControl
             int hitsAmount = Physics.OverlapBoxNonAlloc(  _charCollider.transform.position, _charCollider.bounds.extents, 
                                                             hits, _charCollider.transform.rotation);
             if ( hitsAmount > 1 )
-            {   
+            {
+                Debug.Log(hitsAmount);
                 for (int i = 0; i < hitsAmount; i++)
                 {
                     Collider hit = hits[i];

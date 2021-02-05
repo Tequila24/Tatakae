@@ -7,10 +7,14 @@ namespace CharControl
 {
     public class FreefallMotion : Motion
     {
-        public FreefallMotion(Rigidbody charBody, Collider charCollider)
+        public static FreefallMotion Create(GameObject parent, Rigidbody charBody, Collider charCollider)
         {
-            _charBody = charBody;
-            _charCollider = charCollider;
+            FreefallMotion motion = parent.AddComponent<FreefallMotion>();
+
+            motion._charBody = charBody;
+            motion._charCollider = charCollider;
+
+            return motion;
         }
 
         public override void BeginMotion(Vector3 oldVelocity)
