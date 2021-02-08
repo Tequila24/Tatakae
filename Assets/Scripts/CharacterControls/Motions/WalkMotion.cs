@@ -16,7 +16,9 @@ namespace CharControl
 
         public static WalkMotion Create(GameObject parent, Rigidbody charBody, Collider charCollider)
         {
-            WalkMotion motion = parent.AddComponent<WalkMotion>();
+            WalkMotion motion = parent.GetComponent<WalkMotion>();
+            if (motion == null)
+                motion = parent.AddComponent<WalkMotion>();
 
             motion._charBody = charBody;
             motion._charCollider = charCollider;
@@ -66,7 +68,6 @@ namespace CharControl
                         _velocity = Vector3.ProjectOnPlane(Vector3.ProjectOnPlane(_velocity, hit.normal), _currentSurface.contactPointNormal);
                     }
                     Vector3 depenetrationVector = CheckCollision();
-                    Debug.Log(depenetrationVector);
 
                     if (depenetrationVector.sqrMagnitude > 0 )
                         _charBody.transform.position += Vector3.ProjectOnPlane(depenetrationVector, _currentSurface.contactPointNormal);

@@ -52,6 +52,10 @@ namespace CharControl
 
         private Dictionary<CharState, Motion> _charMotions = new Dictionary<CharState, Motion>();
 
+        void OnValidate()
+        {
+            Init();
+        }
 
         void Start()
         {
@@ -67,8 +71,13 @@ namespace CharControl
             if (_charCollider == null) 
                 _charCollider = gameObject.GetComponent<Collider>();
 
-            _charMotions.Add(CharState.Freefalling, FreefallMotion.Create(this.gameObject, _charBody, _charCollider));
-            _charMotions.Add(CharState.Walking, WalkMotion.Create(this.gameObject, _charBody, _charCollider));
+            if (!_charMotions.ContainsKey(CharState.Freefalling))
+                _charMotions.Add(CharState.Freefalling, FreefallMotion.Create(this.gameObject, _charBody, _charCollider));
+
+            if (!_charMotions.ContainsKey(CharState.Walking))
+                _charMotions.Add(CharState.Walking, WalkMotion.Create(this.gameObject, _charBody, _charCollider));
+            
+            if (!_charMotions.ContainsKey(CharState.Grappling))
             _charMotions.Add(CharState.Grappling, GrappleMotion.Create(this.gameObject, _charBody, _charCollider));
         }
 

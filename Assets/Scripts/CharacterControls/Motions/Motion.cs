@@ -33,7 +33,6 @@ namespace CharControl
                                                             hits, _charCollider.transform.rotation);
             if ( hitsAmount > 1 )
             {
-                Debug.Log(hitsAmount);
                 for (int i = 0; i < hitsAmount; i++)
                 {
                     Collider hit = hits[i];

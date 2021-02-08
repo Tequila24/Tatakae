@@ -9,11 +9,13 @@ namespace CharControl
     {
         public static FreefallMotion Create(GameObject parent, Rigidbody charBody, Collider charCollider)
         {
-            FreefallMotion motion = parent.AddComponent<FreefallMotion>();
+            FreefallMotion motion = parent.GetComponent<FreefallMotion>();
+            if (motion == null)
+                motion = parent.AddComponent<FreefallMotion>();
 
             motion._charBody = charBody;
             motion._charCollider = charCollider;
-
+                
             return motion;
         }
 
