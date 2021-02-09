@@ -13,6 +13,8 @@ namespace CharControl
         protected Rigidbody _charBody;
         protected Collider _charCollider;
 
+        protected Vector3 _contactNormal;
+
         public void UpdateInputs(InputState newInputs)
         {
             _inputs = newInputs;
@@ -31,7 +33,8 @@ namespace CharControl
             Collider[] hits = new Collider[10];
             int hitsAmount = Physics.OverlapBoxNonAlloc(  _charCollider.transform.position, _charCollider.bounds.extents, 
                                                             hits, _charCollider.transform.rotation);
-            if ( hitsAmount > 1 )
+
+            if ( hitsAmount > 0 )
             {
                 for (int i = 0; i < hitsAmount; i++)
                 {
@@ -49,6 +52,49 @@ namespace CharControl
             }
 
             return summDepenetrationVector;
+        }
+
+
+        void FixedUpdate()
+        {
+            Vector3 depenetrationVector = CheckCollision();
+            if (depenetrationVector.sqrMagnitude > 0 ) {
+                Debug.Log(depenetrationVector.magnitude);
+                _charBody.transform.position += depenetrationVector;
+                Debug.Log("Inside another object");
+            }
+        }
+
+
+        void OnCollisionEnter(Collision hit)
+        {
+            for (int i = 0; i < hit.contactCount; i++)
+            {
+                _contactNormal += hit.contacts[i].normal;    
+            }
+            _contactNormal.Normalize();
+
+            if (_contactNormal.sqrMagnitude != 0) 
+                        if (Vector3.Angle(_velocity, _contactNormal) > 90)
+                            _velocity = Vector3.ProjectOnPlane(_velocity, _contactNormal); 
+        }
+
+        void OnCollisionStay(Collision hit)
+        {
+            for (int i = 0; i < hit.contactCount; i++)
+            {
+                _contactNormal += hit.contacts[i].normal;    
+            }
+            _contactNormal.Normalize();
+
+            if (_contactNormal.sqrMagnitude != 0) 
+                if (Vector3.Angle(_velocity, _contactNormal) > 90)
+                    _velocity = Vector3.ProjectOnPlane(_velocity, _contactNormal); 
+        }
+
+        void OnCollisionExit(Collision hit)
+        {
+            _contactNormal = Vector3.zero;
         }
     }
 

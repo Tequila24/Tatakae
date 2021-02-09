@@ -71,6 +71,12 @@ namespace CharControl
 
         public override void ProcessMotion()
         {
+            // APPLY VELOCITY
+            _charBody.MovePosition( _charBody.transform.position + 
+                                    _velocity);
+
+
+
             Quaternion lookRotation = Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0);
             Vector3 lookVector = Vector3.ProjectOnPlane(lookRotation * Vector3.forward, Grapple.GetFromTo(_charBody.transform.position)).normalized;
 
@@ -85,26 +91,11 @@ namespace CharControl
             _velocity += grappleAcceleration;
             _velocity = Vector3.ClampMagnitude(_velocity, 0.5f);
 
-            /*
-            // CHECK IF MOVEMENT BLOCKED
-            RaycastHit hit;
-            if (_charBody.SweepTest(_velocity * Time.deltaTime, out hit, _velocity.magnitude))
-            {
-                if (hit.collider.attachedRigidbody != null)
-                    hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity, hit.point, ForceMode.Acceleration);
-                _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal); 
-            }
-            Vector3 depenetrationVector = CheckCollision();
-                if (depenetrationVector.sqrMagnitude > 0 )
-                    _charBody.MovePosition(_charBody.transform.position + depenetrationVector);
-            */
-
-            // CHECK IF CHARCOLLIDER INSIDE ANOTHER COLLIDER
+            /*if (_contactNormal.sqrMagnitude != 0)
+                if (Vector3.Angle(_velocity, _contactNormal) > 90)
+                    _velocity = Vector3.ProjectOnPlane(_velocity, _contactNormal);*/
 
 
-            // APPLY VELOCITY
-            _charBody.MovePosition( _charBody.transform.position + 
-                                    _velocity);
 
             // APPLY ACCELERATION TO GRAPPLED OBJECT
             if (Grapple.grappledRigidbody != null)
@@ -156,25 +147,5 @@ namespace CharControl
             return isGrappled;
         }
 
-
-        void OnCollisionEnter(Collision hit)
-        {
-            _velocity = Vector3.ProjectOnPlane(_velocity, hit.contacts[0].normal); 
-        }
-
-        void OnCollisionStay(Collision hit)
-        {
-            Vector3 depenetrationVector = CheckCollision();
-            if (depenetrationVector.sqrMagnitude > 0 )
-                _charBody.transform.position += depenetrationVector;
-
-            Debug.DrawRay(hit.contacts[0].point, hit.contacts[0].normal * 10, Color.red, 10);
-            _velocity = Vector3.ProjectOnPlane(_velocity, hit.contacts[0].normal); 
-        }
-
-        void OnCollisionExit(Collision hit)
-        {
-            Debug.Log("exit " + hit.gameObject.name);
-        }
     }
 }

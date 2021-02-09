@@ -12,6 +12,8 @@ namespace CharControl
         Surface _currentSurface;
         Surface _nextSurface;
 
+        Vector3 _heightAdjust;
+
         FileLog flog;
 
         public static WalkMotion Create(GameObject parent, Rigidbody charBody, Collider charCollider)
@@ -38,7 +40,13 @@ namespace CharControl
 
         public override void ProcessMotion()
         {
-            Debug.DrawRay(_charBody.transform.position, _velocity, Color.red, Time.deltaTime);
+            // APPLY VELOCITY
+            _charBody.MovePosition( _charBody.transform.position + 
+                                    _heightAdjust + 
+                                    _velocity);
+
+
+
             _currentSurface = SurfaceController.GetSurface( _charBody.transform.position, 
                                                             Physics.gravity, 
                                                             _charCollider.bounds.size.y, 
@@ -56,26 +64,13 @@ namespace CharControl
 
                     _velocity = Vector3.MoveTowards(_velocity, _currentSurface.rotationToNormal * step, 0.005f);
 
-                    Vector3 heightAdjust = new Vector3(0, (_currentSurface.contactPoint.y + _charCollider.bounds.extents.y * 1.3f) - _charBody.transform.position.y, 0) * 0.2f;
+                    _heightAdjust = new Vector3(0, (_currentSurface.contactPoint.y + _charCollider.bounds.extents.y * 1.3f) - _charBody.transform.position.y, 0) * 0.2f;
 
+                    /*if (_contactNormal.sqrMagnitude != 0) 
+                        if (Vector3.Angle(_velocity, _contactNormal) > 90)
+                            _velocity = Vector3.ProjectOnPlane(_velocity, _contactNormal);*/
 
-                    // CHECK IF MOVEMENT BLOCKED
-                    RaycastHit hit;
-                    if (_charBody.SweepTest(_velocity * Time.deltaTime, out hit, _velocity.magnitude))
-                    {
-                        if (hit.collider.attachedRigidbody != null)
-                            hit.collider.attachedRigidbody.AddForceAtPosition( _charBody.velocity, hit.point, ForceMode.Impulse);
-                        _velocity = Vector3.ProjectOnPlane(Vector3.ProjectOnPlane(_velocity, hit.normal), _currentSurface.contactPointNormal);
-                    }
-                    Vector3 depenetrationVector = CheckCollision();
-
-                    if (depenetrationVector.sqrMagnitude > 0 )
-                        _charBody.transform.position += Vector3.ProjectOnPlane(depenetrationVector, _currentSurface.contactPointNormal);
-
-                    // APPLY VELOCITY
-                    _charBody.MovePosition( _charBody.transform.position + 
-                                            heightAdjust + 
-                                            _velocity);
+                    
 
 
                     
@@ -95,22 +90,13 @@ namespace CharControl
 
             } else {
 
-                // sliding downhill
-                _velocity = Vector3.Lerp(_velocity, _currentSurface.downhillVector * 0.15f , 0.2f);
-
-                // CHECK IF MOVEMENT BLOCKED
-                Vector3 _sumVelocity =  _velocity;
-
-                RaycastHit hit;
-                if (_charBody.SweepTest(_sumVelocity * Time.deltaTime, out hit, _sumVelocity.magnitude))
-                {
-
-                    _sumVelocity = Vector3.ProjectOnPlane(_sumVelocity, hit.normal);
-                }
-
                 // APPLY VELOCITY
                 _charBody.MovePosition( _charBody.transform.position + 
-                                        _sumVelocity);
+                                        _velocity);
+
+
+                // sliding downhill
+                _velocity = Vector3.Lerp(_velocity, _currentSurface.downhillVector * 0.15f , 0.2f);
 
                 _charBody.MoveRotation( Quaternion.RotateTowards(   _charBody.transform.rotation,
                                                                     Quaternion.LookRotation(_currentSurface.downhillVector, Vector3.up),
