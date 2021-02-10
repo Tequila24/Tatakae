@@ -7,6 +7,7 @@ namespace CharControl
 {
     public class GrappleMotion : Motion
     {
+        float MaxGrappleDistance = 200.0f;
 
         public struct GrappleInfo
         {
@@ -124,27 +125,23 @@ namespace CharControl
         }
 
 
-        public bool TryGrapple(Quaternion lookDirection)
+        public void TryGrapple(RaycastHit rayHit)
         {
-            bool isGrappled = false;
+            Grapple.Set(rayHit);
+        }
 
-            RaycastHit rayHit;
-            Debug.DrawLine( _charBody.transform.position,
-                            lookDirection * Vector3.forward * 300.0f,
-                            Color.blue, 
-                            0.5f);
+        public bool CheckDistance(out RaycastHit rayHit, Quaternion lookRotation)
+        {
             if (Physics.Raycast(    _charBody.transform.position, 
-                                    lookDirection * Vector3.forward,
-                                    out rayHit,
-                                    100.0f ) )
+                                    lookRotation * Vector3.forward,
+                                    out rayHit))
             {
-                Grapple.Set(rayHit);
-                isGrappled = true;
-            } else {
-                isGrappled = false;
+                Debug.DrawRay(_charBody.transform.position, lookRotation * Vector3.forward * 10, Color.red, 1);
+                if (rayHit.distance < MaxGrappleDistance)
+                    return true;
             }
 
-            return isGrappled;
+            return false;
         }
 
     }

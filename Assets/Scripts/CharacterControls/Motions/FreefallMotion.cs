@@ -33,7 +33,7 @@ namespace CharControl
 
 
             Vector3 step = (_charBody.transform.forward * (_inputs.forward - _inputs.backward) +
-                                    _charBody.transform.right * (_inputs.right - _inputs.left)).normalized * 0.001f;
+                            _charBody.transform.right * (_inputs.right - _inputs.left)).normalized * 0.002f;
             
 
             // PROPERLY SMOOTH MOVEMENT
@@ -41,11 +41,6 @@ namespace CharControl
             _velocity.y = Mathf.MoveTowards(_velocity.y, Physics.gravity.y * 3, 0.0030f);
             _velocity.z = Mathf.MoveTowards(_velocity.z + step.z, 0, 0.00035f );
             
-            /*if (_contactNormal.sqrMagnitude != 0) 
-                if (Vector3.Angle(_velocity, _contactNormal) > 90)
-                    _velocity = Vector3.ProjectOnPlane(_velocity, _contactNormal);*/
-
-
 
             Quaternion lookDirection = Quaternion.Euler(0, _inputs.mousePositionX, 0);           // rotation to mouse look
 

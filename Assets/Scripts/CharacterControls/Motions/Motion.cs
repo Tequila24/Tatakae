@@ -59,9 +59,7 @@ namespace CharControl
         {
             Vector3 depenetrationVector = CheckCollision();
             if (depenetrationVector.sqrMagnitude > 0 ) {
-                Debug.Log(depenetrationVector.magnitude);
                 _charBody.transform.position += depenetrationVector;
-                Debug.Log("Inside another object");
             }
         }
 

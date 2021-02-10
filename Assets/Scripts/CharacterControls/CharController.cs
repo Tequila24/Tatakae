@@ -52,6 +52,9 @@ namespace CharControl
 
         private Dictionary<CharState, Motion> _charMotions = new Dictionary<CharState, Motion>();
 
+        public Quaternion lookRotation;
+        public Vector3 lookPoint;
+
         void OnValidate()
         {
             Init();
@@ -109,7 +112,6 @@ namespace CharControl
             UpdateState();
         }
 
-
         void FixedUpdate()
         {
             if (_charMotions.ContainsKey(_currentState))
@@ -117,6 +119,14 @@ namespace CharControl
                 _charMotions[_currentState].UpdateInputs(_inputs);
                 _charMotions[_currentState].ProcessMotion();
             }
+
+
+            lookRotation = Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0);
+            RaycastHit lookHit;
+            if (Physics.Raycast(this.transform.position, lookRotation * Vector3.forward, out lookHit))
+                lookPoint = lookHit.point;
+            else
+                lookPoint = this.transform.position + lookRotation * Vector3.forward * 10;
         }
 
 
@@ -126,8 +136,10 @@ namespace CharControl
 
             if (Input.GetKeyDown(KeyCode.Mouse0) && Input.GetKey(KeyCode.Mouse0)) 
             {
-                if ( (_charMotions[CharState.Grappling] as GrappleMotion).TryGrapple(Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0)) )
+                RaycastHit grappleHit;
+                if ( (_charMotions[CharState.Grappling] as GrappleMotion).CheckDistance(out grappleHit, lookRotation))
                 {
+                    (_charMotions[CharState.Grappling] as GrappleMotion).TryGrapple(grappleHit);
                     _currentState = CharState.Grappling; 
                 }
             } else {
@@ -158,16 +170,6 @@ namespace CharControl
                         _charMotions[_currentState].BeginMotion(Vector3.zero);
                     }
             }
-
         }
-
-
-        public Quaternion GetLookRotation()
-        {
-            return Quaternion.Euler(_inputs.mousePositionY, _inputs.mousePositionX, 0);
-        }
-
-
-
     }
 }
