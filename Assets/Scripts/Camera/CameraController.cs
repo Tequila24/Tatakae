@@ -31,19 +31,14 @@ public class CameraController : MonoBehaviour
 
     void OnGUI()
     {
-        Vector3 viewportPoint = thisCamera.WorldToViewportPoint( _player.lookPoint );
-        /*GUI.DrawTexture(    new Rect(   Screen.width * 0.5f - cs.cs_blue.width*0.5f,
-                                        Screen.height * 0.5f - cs.cs_blue.height*0.5f,
-                                        64, 
-                                        64),
-                            cs.cs_blue);*/
-        
-        Debug.Log(viewportPoint);
+        bool grappleIsInRange = false;
 
+        Vector3 viewportPoint = thisCamera.WorldToViewportPoint( _player.lookPoint );
+        
         GUI.DrawTexture(    new Rect(   Screen.width * viewportPoint.x - cs.cs_blue.width * 0.125f,
-                                        Screen.height * viewportPoint.y - cs.cs_blue.height * 0.125f,
+                                        Screen.height * (1 - viewportPoint.y) - cs.cs_blue.height * 0.125f,
                                         32, 
                                         32),
-                            cs.cs_blue);
+                            grappleIsInRange ? cs.cs_orange: cs.cs_blue);
     }
 }
